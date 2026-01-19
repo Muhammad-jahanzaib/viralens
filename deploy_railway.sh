@@ -37,6 +37,7 @@ newsapi-python==0.2.7
 pytrends==4.9.2
 tweepy==4.14.0
 pandas==2.2.0
+isodate==0.6.1
 REQ
 
 # Create runtime.txt
