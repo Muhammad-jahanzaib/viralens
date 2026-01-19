@@ -30,6 +30,13 @@ beautifulsoup4==4.12.2
 gunicorn==21.2.0
 python-dotenv==1.0.0
 lxml==4.9.3
+anthropic==0.45.0
+tenacity==8.5.0
+feedparser==6.0.11
+newsapi-python==0.2.7
+pytrends==4.9.2
+tweepy==4.14.0
+pandas==2.2.0
 REQ
 
 # Create runtime.txt
