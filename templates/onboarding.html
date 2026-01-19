@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Setup - ViraLens</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+    <div class="max-w-2xl mx-auto px-4 py-12">
+        <!-- Header -->
+        <div class="absolute top-4 right-4">
+            <a href="/logout" class="text-gray-500 hover:text-gray-700 font-medium text-sm">Logout</a>
+        </div>
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">🚀 Welcome to ViraLens</h1>
+            <p class="text-lg text-gray-600">Answer 3 quick questions to get started</p>
+        </div>
+
+        <!-- Setup Form -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <form id="setup-form" class="space-y-8">
+
+                <!-- Question 1: What Topic? -->
+                <div class="border-l-4 border-blue-500 pl-6">
+                    <label class="block text-lg font-bold text-gray-900 mb-3">
+                        1️⃣ What topic do you create content about?
+                    </label>
+                    <input type="text" id="topic" required
+                        class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Example: Royal Family, Tech Reviews, Stock Market, Fitness...">
+                    <p class="text-sm text-gray-500 mt-2">
+                        💡 Be specific: "Meghan Markle drama" > "Celebrities"
+                    </p>
+                </div>
+
+                <!-- Question 2: Content Style -->
+                <div class="border-l-4 border-purple-500 pl-6">
+                    <label class="block text-lg font-bold text-gray-900 mb-3">
+                        2️⃣ What's your content style?
+                    </label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label
+                            class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                            <input type="radio" name="style" value="breaking_news" required class="mr-3 w-5 h-5">
+                            <div>
+                                <div class="font-semibold">🔥 Breaking News</div>
+                                <div class="text-xs text-gray-600">Fast-paced, timely updates</div>
+                            </div>
+                        </label>
+
+                        <label
+                            class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                            <input type="radio" name="style" value="commentary" class="mr-3 w-5 h-5">
+                            <div>
+                                <div class="font-semibold">💬 Commentary</div>
+                                <div class="text-xs text-gray-600">Opinion & analysis</div>
+                            </div>
+                        </label>
+
+                        <label
+                            class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                            <input type="radio" name="style" value="deep_dive" class="mr-3 w-5 h-5">
+                            <div>
+                                <div class="font-semibold">🔍 Deep Dive</div>
+                                <div class="text-xs text-gray-600">Research & investigation</div>
+                            </div>
+                        </label>
+
+                        <label
+                            class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                            <input type="radio" name="style" value="tutorial" class="mr-3 w-5 h-5">
+                            <div>
+                                <div class="font-semibold">📚 Tutorial</div>
+                                <div class="text-xs text-gray-600">How-to & education</div>
+                            </div>
+                        </label>
+
+                        <label
+                            class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                            <input type="radio" name="style" value="reaction" class="mr-3 w-5 h-5">
+                            <div>
+                                <div class="font-semibold">😮 Reaction</div>
+                                <div class="text-xs text-gray-600">Reviews & reactions</div>
+                            </div>
+                        </label>
+
+                        <label
+                            class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                            <input type="radio" name="style" value="entertainment" class="mr-3 w-5 h-5">
+                            <div>
+                                <div class="font-semibold">🎭 Entertainment</div>
+                                <div class="text-xs text-gray-600">Fun & humor</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 3: Who Watches? -->
+                <div class="border-l-4 border-green-500 pl-6">
+                    <label class="block text-lg font-bold text-gray-900 mb-3">
+                        3️⃣ Who watches your content?
+                    </label>
+                    <input type="text" id="audience" required
+                        class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Example: Women 35-65 who follow royal news">
+                    <p class="text-sm text-gray-500 mt-2">
+                        💡 Include: age range, interests, demographics
+                    </p>
+                </div>
+
+                <!-- Optional: Competitor Channel ID -->
+                <div class="border-l-4 border-orange-500 pl-6">
+                    <label class="block text-lg font-bold text-gray-900 mb-3">
+                        4️⃣ Competitor Channel ID (Optional)
+                        <span class="text-sm font-normal text-blue-600 cursor-pointer hover:underline"
+                            onclick="alert('Go to their channel > View Source > Search for channelId')">❓ Help</span>
+                    </label>
+                    <input type="text" id="competitor"
+                        class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
+                        placeholder="Example: UCsqjHFMB_JYTaEnf_vmTNqg" pattern="^UC[\w-]{22}$">
+                    <p class="text-xs text-red-500 mt-2 hidden" id="onboarding-id-error">
+                        Invalid Channel ID format. Must start with 'UC' + 22 chars.
+                    </p>
+                    <p class="text-sm text-gray-500 mt-2">
+                        💡 Using the Channel ID ensures we track the correct competitor.
+                    </p>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-4">
+                    <button type="submit" id="submit-btn"
+                        class="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-bold rounded-xl hover:from-blue-700 hover:to-purple-700 transition shadow-lg transform hover:scale-105">
+                        ✨ Configure My System with AI
+                    </button>
+                    <p class="text-xs text-center text-gray-500 mt-3">
+                        Takes 30 seconds • Cost: $0.02 • You can edit everything later
+                    </p>
+                </div>
+            </form>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden text-center py-12">
+                <div
+                    class="inline-block animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mb-4">
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">🧠 AI is working...</h3>
+                <div id="loading-steps" class="text-sm text-gray-600 space-y-2">
+                    <p>✅ Analyzing your niche</p>
+                    <p class="text-blue-600">⏳ Finding optimal keywords...</p>
+                    <p class="text-gray-400">⏳ Discovering competitors...</p>
+                    <p class="text-gray-400">⏳ Identifying opportunities...</p>
+                </div>
+            </div>
+
+            <!-- Results State -->
+            <div id="results-state" class="hidden">
+                <div class="text-center mb-6">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Setup Complete!</h2>
+                    <p class="text-gray-600">Your system is configured and ready</p>
+                </div>
+
+                <!-- Summary -->
+                <div class="space-y-4">
+                    <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-green-900">✅ Keywords Added</span>
+                            <span id="keywords-count" class="text-2xl font-bold text-green-600">0</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-blue-900">✅ Competitors Added</span>
+                            <span id="competitors-count" class="text-2xl font-bold text-blue-600">0</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                        <div class="font-medium text-purple-900 mb-2">🎯 Your Niche Analysis</div>
+                        <p id="niche-analysis" class="text-sm text-purple-700"></p>
+                    </div>
+
+                    <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div class="font-medium text-yellow-900 mb-2">💡 Content Opportunities</div>
+                        <ul id="opportunities-list" class="text-sm text-yellow-700 space-y-1"></ul>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-4 mt-8">
+                    <a href="/settings"
+                        class="flex-1 px-6 py-3 bg-gray-100 text-gray-900 font-medium rounded-lg hover:bg-gray-200 transition text-center">
+                        ⚙️ Review Settings
+                    </a>
+                    <a href="/"
+                        class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition text-center">
+                        🚀 Start Research
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skip Option -->
+        <div class="text-center mt-8">
+            <button onclick="skipSetup()" class="text-sm text-gray-600 hover:text-gray-900 underline">
+                Skip setup and configure manually
+            </button>
+        </div>
+    </div>
+
+    <script>
+        async function skipSetup() {
+            try {
+                const response = await fetch('/api/complete-onboarding', { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = '/settings';
+                } else {
+                    alert('Error: ' + (result.error || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Network error');
+            }
+        }
+        document.getElementById('setup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Get selected style
+            const selectedStyle = document.querySelector('input[name="style"]:checked');
+            const competitorInput = document.getElementById('competitor').value.trim();
+
+            // Validate Competitor Channel ID (if provided)
+            if (competitorInput) {
+                const regex = /^UC[\w-]{22}$/;
+                if (!regex.test(competitorInput)) {
+                    document.getElementById('onboarding-id-error').classList.remove('hidden');
+                    return; // Stop submission
+                } else {
+                    document.getElementById('onboarding-id-error').classList.add('hidden');
+                }
+            }
+
+            const formData = {
+                topic: document.getElementById('topic').value,
+                content_style: selectedStyle ? selectedStyle.value : '',
+                target_audience: document.getElementById('audience').value,
+                competitor_hint: competitorInput || null
+            };
+
+            // Show loading with animation
+            document.getElementById('setup-form').classList.add('hidden');
+            const loadingState = document.getElementById('loading-state');
+            loadingState.classList.remove('hidden');
+
+            // Animate loading steps
+            animateLoadingSteps();
+
+            try {
+                const response = await fetch('/api/smart-setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    loadingState.classList.add('hidden');
+                    showResults(result);
+                } else {
+                    alert('Setup failed: ' + result.error);
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+                location.reload();
+            }
+        });
+
+        function animateLoadingSteps() {
+            const steps = document.querySelectorAll('#loading-steps p');
+            let currentStep = 0;
+
+            const interval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    // Mark previous as done
+                    if (currentStep > 0) {
+                        steps[currentStep - 1].className = 'text-green-600';
+                        steps[currentStep - 1].textContent = '✅ ' + steps[currentStep - 1].textContent.replace('⏳ ', '');
+                    }
+
+                    // Highlight current
+                    steps[currentStep].className = 'text-blue-600 font-medium';
+
+                    currentStep++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1500);
+        }
+
+        function showResults(result) {
+            const resultsDiv = document.getElementById('results-state');
+            resultsDiv.classList.remove('hidden');
+
+            document.getElementById('keywords-count').textContent = result.applied.keywords_added;
+            document.getElementById('competitors-count').textContent = result.applied.competitors_added;
+
+            const niche = result.recommendations.niche_analysis;
+            document.getElementById('niche-analysis').textContent =
+                `${niche.primary_niche} - ${niche.content_angle}`;
+
+            const oppList = document.getElementById('opportunities-list');
+            oppList.innerHTML = '';
+            result.recommendations.content_opportunities.forEach(opp => {
+                const li = document.createElement('li');
+                li.textContent = `• ${opp}`;
+                oppList.appendChild(li);
+            });
+        }
+    </script>
+</body>
+
+</html>

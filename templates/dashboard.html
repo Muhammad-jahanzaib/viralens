@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ViralLens</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --light: #f8fafc;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--white);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .user-tier {
+            font-size: 0.75rem;
+            color: var(--gray);
+            text-transform: capitalize;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--gray);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .page-header p {
+            color: var(--gray);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .stat-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Action Section */
+        .action-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 3rem;
+            border-radius: 1rem;
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .action-section h2 {
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .action-section p {
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--primary);
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+        }
+
+        .btn-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Research History */
+        .research-history {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header h3 {
+            font-size: 1.25rem;
+            color: var(--dark);
+        }
+
+        .research-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .research-item {
+            padding: 1.5rem;
+            border: 2px solid #f1f5f9;
+            border-radius: 0.75rem;
+            transition: border-color 0.3s, transform 0.3s;
+        }
+
+        .research-item:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .research-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .research-meta {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .research-keywords {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .keyword-tag {
+            background: #f1f5f9;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toast {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-icon {
+            font-size: 1.5rem;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .toast-message {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .toast-close {
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast-warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .toast-info {
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-right {
+                gap: 1rem;
+            }
+
+            .user-details {
+                display: none;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .toast-container {
+                top: 1rem;
+                right: 1rem;
+                left: 1rem;
+            }
+
+            .toast {
+                min-width: unset;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <a href="/dashboard" class="logo">
+                🎯 ViralLens
+            </a>
+            <div class="nav-right">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ current_user.username[0].upper() }}
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name">{{ current_user.full_name or current_user.username }}</div>
+                        <div class="user-tier">{{ current_user.subscription_tier }} plan</div>
+                    </div>
+                </div>
+                <a href="/settings" class="btn btn-outline">Settings</a>
+                <a href="/logout" class="btn btn-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>Welcome back, {{ current_user.full_name or current_user.username }}! 👋</h1>
+            <p>Your viral content research dashboard</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">
+                    📊 Research Runs This Month
+                </div>
+                <div class="stat-value">{{ current_user.research_runs_this_month }}</div>
+                <div class="stat-badge badge-{{ 'success' if current_user.can_run_research() else 'danger' }}">
+                    {{ current_user.get_remaining_runs() }} remaining
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">
+                    🎯 Total Research Runs
+                </div>
+                <div class="stat-value">{{ current_user.total_research_runs }}</div>
+                <div class="stat-badge badge-success">
+                    All time
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">
+                    💎 Subscription Tier
+                </div>
+                <div class="stat-value" style="font-size: 1.5rem; text-transform: capitalize;">
+                    {{ current_user.subscription_tier }}
+                </div>
+                <div class="stat-badge badge-success">
+                    {{ current_user.subscription_status }}
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">
+                    📅 Member Since
+                </div>
+                <div class="stat-value" style="font-size: 1.2rem;">
+                    {{ current_user.created_at.strftime('%b %Y') }}
+                </div>
+                <div class="stat-badge badge-success">
+                    Active
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Section -->
+        <div class="action-section">
+            <h2>Ready to Generate Viral Content Ideas?</h2>
+            <p>Analyze 5 data sources in 30 seconds to get AI-powered topic recommendations</p>
+            <div id="initialState">
+                <button class="btn btn-white" onclick="runResearch()">
+                    <span>🚀 Run Research Now</span>
+                </button>
+            </div>
+
+            <div id="progressState" style="display: none; max-width: 600px; margin: 0 auto;">
+                <h3 style="margin-bottom: 1rem; font-size: 1.25rem;">Analyzing Data Sources...</h3>
+
+                <!-- Progress Bar -->
+                <div
+                    style="background: rgba(255,255,255,0.2); border-radius: 1rem; height: 12px; margin-bottom: 2rem; overflow: hidden; position: relative;">
+                    <div id="progressBar"
+                        style="width: 0%; height: 100%; background: #ffffff; border-radius: 1rem; transition: width 0.5s ease;">
+                    </div>
+                </div>
+
+                <!-- Source Icons Grid -->
+                <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+                    <div class="source-item" id="source-trends">
+                        <div class="source-icon">📈</div>
+                        <div class="source-label">Trends</div>
+                        <div class="source-status">Waiting</div>
+                    </div>
+                    <div class="source-item" id="source-youtube">
+                        <div class="source-icon">▶️</div>
+                        <div class="source-label">YouTube</div>
+                        <div class="source-status">Waiting</div>
+                    </div>
+                    <div class="source-item" id="source-reddit">
+                        <div class="source-icon">🤖</div>
+                        <div class="source-label">Reddit</div>
+                        <div class="source-status">Waiting</div>
+                    </div>
+                    <div class="source-item" id="source-news">
+                        <div class="source-icon">📰</div>
+                        <div class="source-label">News</div>
+                        <div class="source-status">Waiting</div>
+                    </div>
+                    <div class="source-item" id="source-cp">
+                        <div class="source-icon">🧠</div>
+                        <div class="source-label">Analysis</div>
+                        <div class="source-status">Waiting</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .source-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+                opacity: 0.5;
+                transition: all 0.3s ease;
+            }
+
+            .source-item.active {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+
+            .source-item.done {
+                opacity: 1;
+                color: #a7f3d0;
+            }
+
+            .source-icon {
+                font-size: 2rem;
+                background: rgba(255, 255, 255, 0.1);
+                width: 60px;
+                height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                margin-bottom: 0.25rem;
+            }
+
+            .source-label {
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+
+            .source-status {
+                font-size: 0.75rem;
+                opacity: 0.8;
+            }
+
+            @keyframes pulse {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+                }
+
+                70% {
+                    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+                }
+
+                100% {
+                    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+                }
+            }
+
+            .source-item.active .source-icon {
+                animation: pulse 1.5s infinite;
+                background: rgba(255, 255, 255, 0.25);
+            }
+        </style>
+
+        <!-- Research History -->
+        <div class="research-history">
+            <div class="section-header">
+                <h3>Recent Research Runs</h3>
+                <span style="color: var(--gray); font-size: 0.875rem;">
+                    {{ recent_runs|length }} total
+                </span>
+            </div>
+
+            {% if recent_runs %}
+            <div class="research-list">
+                {% for run in recent_runs %}
+                <div class="research-item">
+                    <div class="research-header">
+                        <div>
+                            <strong style="font-size: 1.1em;">
+                                {% if run.keywords and run.keywords|length > 0 %}
+                                {{ run.keywords[0]|title }} Research
+                                {% else %}
+                                Research Run #{{ run.id }}
+                                {% endif %}
+                            </strong>
+                            <div style="font-size: 0.875rem; color: var(--gray); margin-top: 0.25rem;">
+                                {{ run.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">
+                                {{ run.topics_generated }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--gray); margin-bottom: 0.5rem;">
+                                Topics
+                            </div>
+                            <a href="/research/results/{{ run.id }}" class="btn btn-primary"
+                                style="font-size: 0.8rem; padding: 0.25rem 0.75rem;">
+                                View Results
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="research-meta">
+                        <div class="meta-item">
+                            <span>⚡</span>
+                            <span>{{ "%.1f"|format(run.runtime_seconds) }}s runtime</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>📊</span>
+                            <span>{{ run.sources_successful }}/5 sources</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>💰</span>
+                            <span>${{ "%.4f"|format(run.api_cost) }}</span>
+                        </div>
+                    </div>
+
+                    {% if run.keywords %}
+                    <div class="research-keywords">
+                        {% for keyword in run.keywords[:5] %}
+                        <span class="keyword-tag">{{ keyword }}</span>
+                        {% endfor %}
+                        {% if run.keywords|length > 5 %}
+                        <span class="keyword-tag">+{{ run.keywords|length - 5 }} more</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <h3>No research runs yet</h3>
+                <p>Click "Run Research Now" to generate your first viral content ideas!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Toast notification system
+        function showToast(type, title, message, duration = 5000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <div class="toast-close" onclick="this.parentElement.remove()">✕</div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // Show flash messages as toasts
+        {% with messages = get_flashed_messages(with_categories = true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        showToast('{{ category }}', '{{ category|capitalize }}', '{{ message }}');
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        // Run research
+        // Run research
+        async function runResearch() {
+            // Check limits first
+            {% if not current_user.can_run_research() %}
+            showToast('warning', 'Limit Reached', 'You have reached your monthly research limit. Upgrade to Pro for unlimited runs!');
+            return;
+            {% endif %}
+
+            // 1. Switch UI
+            document.getElementById('initialState').style.display = 'none';
+            document.getElementById('progressState').style.display = 'block';
+
+            const progressBar = document.getElementById('progressBar');
+            const sources = [
+                { id: 'source-trends', time: 1000 },
+                { id: 'source-youtube', time: 3000 },
+                { id: 'source-news', time: 5000 },
+                { id: 'source-reddit', time: 8000 },
+                { id: 'source-cp', time: 11000 }
+            ];
+
+            // 2. Start Simulation Animation (Approx 15s total)
+            let progress = 0;
+            const interval = setInterval(() => {
+                if (progress < 90) {
+                    progress += 1; // Slow increment
+                    progressBar.style.width = `${progress}%`;
+                }
+            }, 150); // Updates every 150ms -> reaches 90% in ~13.5s
+
+            // Animate sources sequentially
+            sources.forEach(src => {
+                setTimeout(() => {
+                    const el = document.getElementById(src.id);
+                    el.classList.add('active');
+                    el.querySelector('.source-status').innerText = 'Scanning...';
+                }, src.time);
+
+                setTimeout(() => {
+                    const el = document.getElementById(src.id);
+                    el.classList.remove('active');
+                    el.classList.add('done');
+                    el.querySelector('.source-status').innerText = 'Complete';
+                }, src.time + 2500); // 2.5s scan time per source
+            });
+
+            // 3. Make the API Call
+            try {
+                const response = await fetch('/api/run-research', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Success!
+                    clearInterval(interval);
+                    progressBar.style.width = '100%';
+                    progressBar.style.backgroundColor = '#10b981'; // Green
+
+                    showToast('success', 'Research Complete!', `Generated ${data.topics.length} viral topic ideas`);
+
+                    // Wait a moment for user to see 100%
+                    setTimeout(() => {
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            window.location.href = '/research/results/' + data.run_id;
+                        }
+                    }, 1500);
+                } else {
+                    handleError(data.error);
+                }
+            } catch (error) {
+                handleError(error.message);
+            }
+
+            function handleError(msg) {
+                clearInterval(interval);
+                progressBar.style.backgroundColor = '#ef4444'; // Red
+                showToast('error', 'Research Failed', msg || 'Something went wrong');
+
+                // Reset UI after delay
+                setTimeout(() => {
+                    document.getElementById('progressState').style.display = 'none';
+                    document.getElementById('initialState').style.display = 'block';
+                    // Reset bars/icons? Or just reload logic handles it. 
+                    // Simpler to just show the button again.
+                }, 4000);
+            }
+        }
+    </script>
+</body>
+
+</html>

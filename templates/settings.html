@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Royal Research Automation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            min-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">⚙️ Settings</h1>
+                    <p class="text-sm text-gray-600">Manage competitors and keywords</p>
+                </div>
+                <a href="/" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8">
+                <button onclick="switchTab('competitors')" id="tab-competitors"
+                    class="tab-active py-4 px-1 border-b-2 font-medium text-sm">
+                    📺 Competitors
+                </button>
+                <button onclick="switchTab('keywords')" id="tab-keywords"
+                    class="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    🔑 Keywords
+                </button>
+                <button onclick="switchTab('performance')" id="tab-performance"
+                    class="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    ⚡ Performance & Limits
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Competitors Tab -->
+    <div id="competitors-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <div class="bg-white rounded-lg shadow">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">YouTube Competitors</h2>
+                        <p class="text-sm text-gray-600">Manage channels to monitor</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="exportCompetitors()"
+                            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                            <span>⬇️</span> Export
+                        </button>
+                        <button onclick="importCompetitors()"
+                            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                            <span>⬆️</span> Import
+                        </button>
+                        <a href="/api/competitors/template" target="_blank"
+                            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 text-gray-700">
+                            <span>📄</span> Template
+                        </a>
+                        <button onclick="openAddCompetitorModal()"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            + Add Competitor
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <div id="competitors-loading" class="text-center py-8">
+                    <div class="spinner mx-auto mb-2"></div>
+                    <p class="text-gray-600">Loading competitors...</p>
+                </div>
+                <div id="competitors-empty" class="text-center py-8 hidden">
+                    <p class="text-gray-500">No competitors added yet.</p>
+                </div>
+                <div id="competitors-table" class="hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Channel ID
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">URL</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="competitors-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keywords Tab -->
+    <div id="keywords-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 hidden">
+        <div class="bg-white rounded-lg shadow">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Research Keywords</h2>
+                        <p class="text-sm text-gray-600">Manage search terms for data collection</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="exportKeywords()"
+                            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                            <span>⬇️</span> Export
+                        </button>
+                        <button onclick="importKeywords()"
+                            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                            <span>⬆️</span> Import
+                        </button>
+                        <a href="/api/keywords/template" target="_blank"
+                            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 text-gray-700">
+                            <span>📄</span> Template
+                        </a>
+                        <button onclick="openAddKeywordModal()"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            + Add Keyword
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <div id="keywords-loading" class="text-center py-8">
+                    <div class="spinner mx-auto mb-2"></div>
+                    <p class="text-gray-600">Loading keywords...</p>
+                </div>
+                <div id="keywords-table" class="hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Keyword</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="keywords-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Tab -->
+    <div id="performance-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Settings Area -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- NEW: Niche Presets (Quick Setup) -->
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 hidden">
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">🚀 Quick Setup (Recommended)</h3>
+                    <p class="text-sm text-gray-500 mb-4">Choose your content niche for optimized settings</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Automotive -->
+                        <div onclick="applyNichePreset('automotive')"
+                            class="bg-white p-4 rounded-lg border-2 border-transparent hover:border-blue-500 cursor-pointer shadow-sm hover:shadow-md transition">
+                            <div class="text-3xl mb-2">🚗</div>
+                            <h4 class="font-bold text-gray-900">Automotive</h4>
+                            <p class="text-xs text-gray-500 mb-2">Cars, reviews, racing</p>
+                            <div class="text-xs bg-gray-100 inline-block px-2 py-1 rounded text-gray-600">Max KW: 4
+                            </div>
+                        </div>
+
+                        <!-- Royal Family -->
+                        <div onclick="applyNichePreset('royal_family')"
+                            class="bg-white p-4 rounded-lg border-2 border-transparent hover:border-blue-500 cursor-pointer shadow-sm hover:shadow-md transition">
+                            <div class="text-3xl mb-2">👑</div>
+                            <h4 class="font-bold text-gray-900">Royal Family</h4>
+                            <p class="text-xs text-gray-500 mb-2">Celebrity news, royals</p>
+                            <div class="text-xs bg-gray-100 inline-block px-2 py-1 rounded text-gray-600">Max KW: 6
+                            </div>
+                        </div>
+
+                        <!-- Technology -->
+                        <div onclick="applyNichePreset('tech')"
+                            class="bg-white p-4 rounded-lg border-2 border-transparent hover:border-blue-500 cursor-pointer shadow-sm hover:shadow-md transition">
+                            <div class="text-3xl mb-2">💻</div>
+                            <h4 class="font-bold text-gray-900">Technology</h4>
+                            <p class="text-xs text-gray-500 mb-2">Gadgets, AI, software</p>
+                            <div class="text-xs bg-gray-100 inline-block px-2 py-1 rounded text-gray-600">Max KW: 6
+                            </div>
+                        </div>
+
+                        <!-- Finance -->
+                        <div onclick="applyNichePreset('finance')"
+                            class="bg-white p-4 rounded-lg border-2 border-transparent hover:border-purple-500 cursor-pointer shadow-sm hover:shadow-md transition">
+                            <div class="text-3xl mb-2">💰</div>
+                            <h4 class="font-bold text-gray-900">Finance</h4>
+                            <p class="text-xs text-gray-500 mb-2">Investing, stocks</p>
+                            <div class="text-xs bg-gray-100 inline-block px-2 py-1 rounded text-gray-600">Max KW: 5
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="toggleAdvancedSettings()"
+                        class="mt-6 text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1 focus:outline-none">
+                        <span id="adv-toggle-icon">⚙️</span>
+                        <span id="adv-toggle-text">Show Advanced Settings</span>
+                    </button>
+                </div>
+
+                <!-- Tier 2: Simple Research Speed Slider -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Research Depth</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label for="research-speed" class="text-sm font-medium text-gray-700">Scan Depth vs.
+                                    Speed</label>
+                                <span id="speed-label" class="text-sm font-blue-600 font-bold">Standard (4
+                                    keywords)</span>
+                            </div>
+                            <input type="range" id="research-speed" min="2" max="10" value="4"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                oninput="syncSpeedToAdvanced(this.value)">
+                            <div class="flex justify-between text-xs text-gray-500 mt-2">
+                                <span>⚡ Faster (2 KW)</span>
+                                <span>🐢 Deeper (10 KW)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Settings (Visible by default now) -->
+                <div id="advanced-settings" class="space-y-6">
+
+                    <!-- Data Collection Limits -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="p-6 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-900">Performance & Limits</h2>
+                            <p class="text-sm text-gray-600">Fine-tune your research parameters</p>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <!-- Max Keywords -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                        How many topics to research?
+                                        <span class="text-gray-400 cursor-help"
+                                            title="Controls research depth. More keywords = more topics but slower execution.">ℹ️</span>
+                                    </label>
+                                    <input type="number" id="perf-max-keywords"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                    <p class="text-xs text-blue-600 mt-1">💡 4-6 keywords recommended for typical usage
+                                    </p>
+                                </div>
+                            </div>
+
+                            <hr class="border-gray-100">
+
+                            <!-- Engagement Thresholds -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                        Twitter Viral Threshold
+                                        <span class="text-gray-400 cursor-help"
+                                            title="Only collect tweets that have at least this many likes+retweets.">ℹ️</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="number" id="perf-twitter-min"
+                                            class="w-full pl-3 pr-12 py-2 border border-gray-300 rounded-lg">
+                                        <span class="absolute right-3 top-2 text-gray-400 text-sm">eng.</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Only show viral content with at least this
+                                        engagement</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                        Reddit Viral Threshold
+                                        <span class="text-gray-400 cursor-help"
+                                            title="Only collect threads with at least this many upvotes.">ℹ️</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="number" id="perf-reddit-min"
+                                            class="w-full pl-3 pr-12 py-2 border border-gray-300 rounded-lg">
+                                        <span class="absolute right-3 top-2 text-gray-400 text-sm">upvotes</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Only show discussions with at least this score
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rate Limit Handling -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="p-6 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-900">Kindness & Optimization</h2>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-start">
+                                <label class="flex items-center cursor-pointer relative">
+                                    <input type="checkbox" id="perf-fail-fast" class="sr-only peer">
+                                    <div
+                                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <span class="font-medium text-gray-700">Skip slow data sources
+                                            (Fail-fast)</span>
+                                        <p class="text-gray-500 font-normal">If Google Trends is slow (429 errors), skip
+                                            it instantly.</p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="flex items-start">
+                                <label class="flex items-center cursor-pointer relative">
+                                    <input type="checkbox" id="perf-retry" class="sr-only peer">
+                                    <div
+                                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <span class="font-medium text-gray-700">Retry on rate limits</span>
+                                        <p class="text-gray-500 font-normal">Enable aggressive retries (slower
+                                            execution).</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="pl-14">
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Max Retry Attempts</label>
+                                <input type="number" id="perf-max-retries"
+                                    class="w-24 px-2 py-1 border border-gray-300 rounded text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reddit Configuration -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="p-6 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-900">Forum Settings</h2>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-center mb-4">
+                                <input type="checkbox" id="perf-auto-subreddit"
+                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="perf-auto-subreddit" class="ml-2 block text-sm text-gray-900 font-medium">
+                                    Automatically find best subreddit
+                                </label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Primary Subreddit
+                                    (Fallback)</label>
+                                <input type="text" id="perf-default-subreddit"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="cars">
+                                <p class="text-xs text-gray-500 mt-1">Used if auto-detection is disabled or fails.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Save Buttons -->
+                    <div class="flex justify-end pt-4">
+                        <button onclick="savePerformanceSettings()"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg transition flex items-center gap-2">
+                            <span>💾</span> Save Advanced Settings
+                        </button>
+                    </div>
+
+                </div> <!-- End Advanced Settings -->
+
+            </div>
+
+            <!-- Sidebar: Niche Presets -->
+            <div class="space-y-6 hidden lg:block">
+                <div class="bg-blue-50 rounded-lg border border-blue-100 p-6">
+                    <h3 class="text-lg font-bold text-blue-900 mb-2">💡 Help</h3>
+                    <ul class="space-y-2 text-sm text-blue-800">
+                        <li>• <strong>Presets</strong> are the safest way to configure.</li>
+                        <li>• <strong>Max Keywords</strong> impacts speed most.</li>
+                        <li>• Use <strong>Fail-fast</strong> to skip stalled APIs.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Niche Information</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Niche Name</label>
+                            <input type="text" id="perf-niche-name"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea id="perf-niche-desc" rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
+                        </div>
+                        <button onclick="savePerformanceSettings()"
+                            class="w-full py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm font-medium">
+                            Save Metadata
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Competitor Modal -->
+    <div id="competitor-modal" class="modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="p-6 border-b border-gray-200">
+                <h3 id="competitor-modal-title" class="text-lg font-semibold">Add Competitor</h3>
+            </div>
+            <form id="competitor-form" class="p-6 space-y-4">
+                <input type="hidden" id="competitor-id">
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                    <input type="text" id="competitor-name" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="Jessica Talks Tea">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        YouTube Channel ID *
+                        <button type="button" class="text-blue-600 hover:text-blue-800 ml-1 text-xs"
+                            onclick="showChannelIdHelp()">
+                            ❓ How to find this?
+                        </button>
+                    </label>
+                    <input type="text" id="competitor-channel-id" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                        placeholder="UCsqjHFMB_JYTaEnf_vmTNqg" pattern="^UC[\w-]{22}$">
+                    <p class="text-xs text-red-500 mt-1 hidden" id="channel-id-error">
+                        Invalid format. Must start with 'UC' followed by 22 characters.
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Example: UCsqjHFMB_JYTaEnf_vmTNqg (Doug DeMuro)
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                    <textarea id="competitor-description" rows="2"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="Royal commentary channel"></textarea>
+                </div>
+
+                <div class="flex space-x-3 pt-4">
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <span id="competitor-submit-text">Add Competitor</span>
+                    </button>
+                    <button type="button" onclick="closeCompetitorModal()"
+                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- How to Find Channel ID Modal -->
+    <div id="channel-id-help-modal" class="modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-0 overflow-hidden">
+            <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-900">How to Find YouTube Channel ID</h3>
+                <button onclick="closeChannelIdHelp()" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+
+            <div class="p-6 overflow-y-auto max-h-[70vh]">
+                <div class="space-y-6">
+                    <div class="flex gap-4">
+                        <div
+                            class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                            1</div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Go to the YouTube channel page</h4>
+                            <p class="text-sm text-gray-600">Example: youtube.com/@DougDeMuro</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div
+                            class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                            2</div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">View Page Source</h4>
+                            <p class="text-sm text-gray-600">Right-click on the background → "View Page Source"</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div
+                            class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                            3</div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Search for "channelId"</h4>
+                            <p class="text-sm text-gray-600">Press Ctrl+F (or Cmd+F) and type: <code
+                                    class="bg-gray-100 px-1 rounded">channelId</code></p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div
+                            class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                            4</div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Copy the ID</h4>
+                            <p class="text-sm text-gray-600">It looks like: <code
+                                    class="bg-gray-100 px-1 rounded">UCsqjHFMB_JYTaEnf_vmTNqg</code> (24 chars)</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-lg mt-4">
+                        <h4 class="font-bold text-blue-900 text-sm mb-2">🔧 Easier Way: Use a Tool</h4>
+                        <p class="text-sm text-blue-800">
+                            Visit <a href="https://commentpicker.com/youtube-channel-id.php" target="_blank"
+                                class="underline">YouTube Channel ID Finder</a> and paste the channel URL.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-gray-50 border-t border-gray-200">
+                <button onclick="closeChannelIdHelp()"
+                    class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Got it!</button>
+            </div>
+        </div>
+    </div>
+    </form>
+    </div>
+    </div>
+
+    <!-- Add/Edit Keyword Modal -->
+    <div id="keyword-modal" class="modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="p-6 border-b border-gray-200">
+                <h3 id="keyword-modal-title" class="text-lg font-semibold">Add Keyword</h3>
+            </div>
+            <form id="keyword-form" class="p-6 space-y-4">
+                <input type="hidden" id="keyword-id">
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Keyword *</label>
+                    <input type="text" id="keyword-text" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="Kate Middleton">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                    <select id="keyword-category" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="primary">Primary - Main focus</option>
+                        <option value="secondary">Secondary - Related topics</option>
+                    </select>
+                </div>
+
+                <div class="flex space-x-3 pt-4">
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <span id="keyword-submit-text">Add Keyword</span>
+                    </button>
+                    <button type="button" onclick="closeKeywordModal()"
+                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script>
+        // ============================================================
+        // STATE & INITIALIZATION
+        // ============================================================
+        let competitors = [];
+        let keywords = [];
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCompetitors();
+            loadKeywords();
+        });
+
+        // ============================================================
+        // TAB SWITCHING
+        // ============================================================
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('tab-active', 'text-blue-600');
+                btn.classList.add('text-gray-500');
+            });
+            document.getElementById(`tab-${tab}`).classList.add('tab-active', 'text-blue-600');
+            document.getElementById(`tab-${tab}`).classList.remove('text-gray-500');
+
+            // Update content
+            document.getElementById('competitors-content').classList.toggle('hidden', tab !== 'competitors');
+            document.getElementById('keywords-content').classList.toggle('hidden', tab !== 'keywords');
+            document.getElementById('performance-content').classList.toggle('hidden', tab !== 'performance');
+
+            if (tab === 'performance') {
+                loadPerformanceSettings();
+                // loadNichePresets(); // Implemented dynamically in HTML now, but technically we don't need to load external list if hardcoded.
+                // However, user requested dynamic presets previously? 
+                // The provided HTML hardcodes them. I will keep them hardcoded as per User Request Phase 1.
+            }
+        }
+
+        // ============================================================
+        // PERFORMANCE SETTINGS
+        // ============================================================
+        let currentConfig = {};
+
+        async function loadPerformanceSettings() {
+            try {
+                const response = await fetch('/api/system-config');
+                const result = await response.json();
+
+                if (result.success) {
+                    currentConfig = result.config;
+                    populatePerformanceForm(result.config);
+                } else {
+                    showToast('Failed to load settings', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading config:', error);
+                showToast('Network error', 'error');
+            }
+        }
+
+        function populatePerformanceForm(config) {
+            // Collection Limits
+            document.getElementById('perf-max-keywords').value = getNested(config, 'collection_settings.max_keywords', 4);
+            document.getElementById('perf-twitter-min').value = getNested(config, 'collection_settings.twitter_min_engagement', 500);
+            document.getElementById('perf-reddit-min').value = getNested(config, 'collection_settings.reddit_min_upvotes', 100);
+
+            // Rate Limits
+            document.getElementById('perf-fail-fast').checked = getNested(config, 'collection_settings.google_trends_fail_fast', true);
+            document.getElementById('perf-retry').checked = getNested(config, 'performance_tuning.retry_on_rate_limit', false);
+            document.getElementById('perf-max-retries').value = getNested(config, 'performance_tuning.max_retry_attempts', 1);
+
+            // Reddit
+            document.getElementById('perf-auto-subreddit').checked = getNested(config, 'reddit_config.auto_detect_subreddit', false);
+            document.getElementById('perf-default-subreddit').value = getNested(config, 'reddit_config.default_subreddit', 'cars');
+
+            // Niche
+            document.getElementById('perf-niche-desc').value = getNested(config, 'niche_config.description', '');
+
+            // Sync slider
+            const maxKw = getNested(config, 'collection_settings.max_keywords', 4);
+            document.getElementById('research-speed').value = maxKw;
+            updateSpeedLabel(maxKw);
+        }
+
+        function syncSpeedToAdvanced(val) {
+            document.getElementById('perf-max-keywords').value = val;
+            updateSpeedLabel(val);
+        }
+
+        function updateSpeedLabel(val) {
+            let label = "Standard";
+            if (val <= 2) label = "⚡ Lightning";
+            else if (val <= 3) label = "Fast";
+            else if (val >= 8) label = "🐢 Deep Dive";
+            else if (val >= 6) label = "Through";
+
+            document.getElementById('speed-label').textContent = `${label} (${val} keywords)`;
+        }
+
+        async function savePerformanceSettings() {
+            const updates = {
+                'collection_settings.max_keywords': parseInt(document.getElementById('perf-max-keywords').value),
+                'collection_settings.twitter_min_engagement': parseInt(document.getElementById('perf-twitter-min').value),
+                'collection_settings.reddit_min_upvotes': parseInt(document.getElementById('perf-reddit-min').value),
+                'collection_settings.google_trends_fail_fast': document.getElementById('perf-fail-fast').checked,
+
+                'performance_tuning.retry_on_rate_limit': document.getElementById('perf-retry').checked,
+                'performance_tuning.max_retry_attempts': parseInt(document.getElementById('perf-max-retries').value),
+
+                'reddit_config.auto_detect_subreddit': document.getElementById('perf-auto-subreddit').checked,
+                'reddit_config.default_subreddit': document.getElementById('perf-default-subreddit').value,
+
+                'niche_config.name': document.getElementById('perf-niche-name').value,
+                'niche_config.description': document.getElementById('perf-niche-desc').value
+            };
+
+            try {
+                const response = await fetch('/api/system-config', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('Settings saved successfully', 'success');
+                    currentConfig = result.config; // Update local state
+                } else {
+                    showToast(result.error || 'Failed to save settings', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving config:', error);
+                showToast('Network error saving settings', 'error');
+            }
+        }
+
+        function toggleAdvancedSettings() {
+            const advParams = document.getElementById('advanced-settings');
+            const icon = document.getElementById('adv-toggle-icon');
+            const text = document.getElementById('adv-toggle-text');
+
+            if (advParams.classList.contains('hidden')) {
+                advParams.classList.remove('hidden');
+                icon.textContent = '🔼';
+                text.textContent = 'Hide Advanced Settings';
+            } else {
+                advParams.classList.add('hidden');
+                icon.textContent = '⚙️';
+                text.textContent = 'Show Advanced Settings';
+            }
+        }
+
+        async function applyNichePreset(presetId) {
+            if (!confirm(`Apply the ${presetId} preset? This will overwrite your current settings.`)) return;
+
+            try {
+                const response = await fetch(`/api/apply-niche-preset/${presetId}`, { method: 'POST' });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+
+                    // Reload all sections to show new data
+                    await Promise.all([
+                        loadPerformanceSettings(),
+                        loadCompetitors(),
+                        loadKeywords()
+                    ]);
+                } else {
+                    showToast(result.error, 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Error applying preset', 'error');
+            }
+        }
+
+        async function checkCompetitorSuggestions(suggestions) {
+            if (!suggestions || suggestions.length === 0) return;
+
+            // Filter out existing competitors (check by name or ID)
+            const newCompetitors = suggestions.filter(s =>
+                !competitors.some(c =>
+                    c.name.toLowerCase() === s.name.toLowerCase() ||
+                    (s.channel_id && c.channel_id === s.channel_id)
+                )
+            );
+
+            if (newCompetitors.length > 0) {
+                const names = newCompetitors.map(c => c.name).join(', ');
+                if (confirm(`Optimization Tip: Add top competitors for this niche?\n\nRecommended: ${names}`)) {
+                    // Open modal for the first one
+                    const first = newCompetitors[0];
+                    openAddCompetitorModal();
+                    document.getElementById('competitor-name').value = first.name;
+                    if (first.channel_id) {
+                        document.getElementById('competitor-channel-id').value = first.channel_id;
+                    }
+                    showToast(`Pre-filled ${first.name}. Click Add to confirm.`, 'info');
+                }
+            }
+        }
+
+        function getNested(obj, path, defaultValue) {
+            return path.split('.').reduce((o, key) => (o && o[key] !== undefined) ? o[key] : defaultValue, obj) || defaultValue;
+        }
+
+        // ============================================================
+        // COMPETITORS CRUD
+        // ============================================================
+        async function loadCompetitors() {
+            try {
+                const response = await fetch('/api/competitors');
+                const result = await response.json();
+
+                // Handle both list and object format
+                competitors = Array.isArray(result) ? result : (result.data || []);
+                renderCompetitors();
+            } catch (error) {
+                console.error('Error loading competitors:', error);
+                showToast('Failed to load competitors', 'error');
+            }
+        }
+
+        function renderCompetitors() {
+            const loading = document.getElementById('competitors-loading');
+            const empty = document.getElementById('competitors-empty');
+            const table = document.getElementById('competitors-table');
+            const tbody = document.getElementById('competitors-body');
+
+            loading.classList.add('hidden');
+
+            if (competitors.length === 0) {
+                empty.classList.remove('hidden');
+                table.classList.add('hidden');
+            } else {
+                empty.classList.add('hidden');
+                table.classList.remove('hidden');
+
+                tbody.innerHTML = competitors.map(comp => `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="font-medium text-gray-900">${escapeHtml(comp.name)}</div>
+                            ${comp.description ? `<div class="text-sm text-gray-500">${escapeHtml(comp.description)}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            ${comp.channel_id
+                        ? `<code class="text-xs bg-gray-100 px-2 py-1 rounded">${escapeHtml(comp.channel_id)}</code>`
+                        : `<span class="text-xs text-red-500 italic">Channel ID not provided</span>`
+                    }
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            ${comp.channel_id
+                        ? `<a href="https://www.youtube.com/channel/${escapeHtml(comp.channel_id)}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">View Channel →</a>`
+                        : `<span class="text-gray-400 text-sm">No URL</span>`
+                    }
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full ${comp.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                ${comp.enabled ? '🟢 Active' : '🔴 Inactive'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                            <button onclick="toggleCompetitor(${comp.id})" 
+                                class="text-blue-600 hover:text-blue-800">
+                                ${comp.enabled ? 'Disable' : 'Enable'}
+                            </button>
+                            <button onclick="editCompetitor(${comp.id})" 
+                                class="text-gray-600 hover:text-gray-800">
+                                Edit
+                            </button>
+                            <button onclick="deleteCompetitor(${comp.id})" 
+                                class="text-red-600 hover:text-red-800">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function showChannelIdHelp() {
+            document.getElementById('channel-id-help-modal').classList.add('active');
+        }
+
+        function closeChannelIdHelp() {
+            document.getElementById('channel-id-help-modal').classList.remove('active');
+        }
+
+        function validateChannelId(channelId) {
+            // YouTube Channel ID format: UC + 22 characters
+            const regex = /^UC[\w-]{22}$/;
+            if (!channelId) return { valid: false, error: 'Channel ID is required' };
+            if (!regex.test(channelId)) {
+                return {
+                    valid: false,
+                    error: 'Invalid format. Channel ID should start with "UC" followed by 22 characters'
+                };
+            }
+            return { valid: true };
+        }
+
+        function openAddCompetitorModal() {
+            document.getElementById('competitor-modal-title').textContent = 'Add Competitor';
+            document.getElementById('competitor-submit-text').textContent = 'Add Competitor';
+            document.getElementById('competitor-form').reset();
+            document.getElementById('competitor-id').value = '';
+            document.getElementById('competitor-channel-id').value = '';
+            document.getElementById('channel-id-error').classList.add('hidden');
+            document.getElementById('competitor-modal').classList.add('active');
+        }
+
+        function closeCompetitorModal() {
+            document.getElementById('competitor-modal').classList.remove('active');
+        }
+
+        function editCompetitor(id) {
+            const comp = competitors.find(c => c.id === id);
+            if (!comp) return;
+
+            document.getElementById('competitor-modal-title').textContent = 'Edit Competitor';
+            document.getElementById('competitor-submit-text').textContent = 'Update Competitor';
+            document.getElementById('competitor-id').value = comp.id;
+            document.getElementById('competitor-name').value = comp.name;
+            document.getElementById('competitor-channel-id').value = comp.channel_id || '';
+            document.getElementById('competitor-description').value = comp.description || '';
+            document.getElementById('channel-id-error').classList.add('hidden');
+
+            document.getElementById('competitor-modal').classList.add('active');
+        }
+
+        document.getElementById('competitor-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('competitor-name').value;
+            const channelId = document.getElementById('competitor-channel-id').value.trim();
+            const description = document.getElementById('competitor-description').value;
+            const id = document.getElementById('competitor-id').value;
+
+            // Client-side Validation
+            const validation = validateChannelId(channelId);
+            if (!validation.valid) {
+                const errorEl = document.getElementById('channel-id-error');
+                errorEl.textContent = validation.error;
+                errorEl.classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('channel-id-error').classList.add('hidden');
+            }
+
+            const data = {
+                name: name,
+                channel_id: channelId,
+                description: description,
+                url: `https://www.youtube.com/channel/${channelId}` // Construct URL for backend compat if needed
+            };
+
+            // Show loading
+            document.getElementById('competitor-submit-text').classList.add('hidden');
+            // document.getElementById('competitor-submit-loading').classList.remove('hidden'); // Removed loading element in previous step HTML update? 
+            // Wait, I might have removed it in the HTML replace. Let me check the HTML content I just wrote. 
+            // I removed the whole button block in previous step? No, I kept it but removed the `detecting` span?
+            // Actually, I should just set text to 'Saving...' safely.
+            const btnText = document.getElementById('competitor-submit-text');
+            const originalText = btnText.textContent;
+            btnText.textContent = 'Saving...';
+            const btn = btnText.parentElement;
+            btn.disabled = true;
+
+            try {
+                let response;
+                if (id) {
+                    // Update
+                    response = await fetch(`/api/competitors/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    // Add
+                    response = await fetch('/api/competitors', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message || 'Saved successfully', 'success');
+                    closeCompetitorModal();
+                    await loadCompetitors();
+                } else {
+                    // If error mentions Channel ID, show it on the field
+                    if (result.error && result.error.includes('Channel ID')) {
+                        const errorEl = document.getElementById('channel-id-error');
+                        errorEl.textContent = result.error;
+                        errorEl.classList.remove('hidden');
+                    }
+                    showToast(result.error || 'Operation failed', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Network error', 'error');
+            } finally {
+                // Hide loading
+                btnText.textContent = originalText;
+                btnText.classList.remove('hidden');
+                btn.disabled = false;
+            }
+        });
+
+        async function toggleCompetitor(id) {
+            try {
+                const response = await fetch(`/api/competitors/${id}/toggle`, { method: 'POST' });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    await loadCompetitors();
+                } else {
+                    showToast(result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to toggle competitor', 'error');
+            }
+        }
+
+        async function deleteCompetitor(id) {
+            if (!confirm('Are you sure you want to delete this competitor?')) return;
+
+            try {
+                const response = await fetch(`/api/competitors/${id}`, { method: 'DELETE' });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    await loadCompetitors();
+                } else {
+                    showToast(result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to delete competitor', 'error');
+            }
+        }
+
+        // ============================================================
+        // KEYWORDS CRUD
+        // ============================================================
+        async function loadKeywords() {
+            try {
+                const response = await fetch('/api/keywords');
+                const result = await response.json();
+
+                // Handle both list and object format
+                keywords = Array.isArray(result) ? result : (result.data || []);
+                renderKeywords();
+            } catch (error) {
+                console.error('Error loading keywords:', error);
+                showToast('Failed to load keywords', 'error');
+            }
+        }
+
+        function renderKeywords() {
+            const loading = document.getElementById('keywords-loading');
+            const table = document.getElementById('keywords-table');
+            const tbody = document.getElementById('keywords-body');
+
+            loading.classList.add('hidden');
+            table.classList.remove('hidden');
+
+            tbody.innerHTML = keywords.map(kw => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-medium text-gray-900">${escapeHtml(kw.keyword)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${kw.category === 'primary' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">
+                            ${kw.category === 'primary' ? '🎯 Primary' : '📌 Secondary'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${kw.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                            ${kw.enabled ? '🟢 Active' : '🔴 Inactive'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                        <button onclick="toggleKeyword(${kw.id})" 
+                            class="text-blue-600 hover:text-blue-800">
+                            ${kw.enabled ? 'Disable' : 'Enable'}
+                        </button>
+                        <button onclick="editKeyword(${kw.id})" 
+                            class="text-gray-600 hover:text-gray-800">
+                            Edit
+                        </button>
+                        <button onclick="deleteKeyword(${kw.id})" 
+                            class="text-red-600 hover:text-red-800">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openAddKeywordModal() {
+            document.getElementById('keyword-modal-title').textContent = 'Add Keyword';
+            document.getElementById('keyword-submit-text').textContent = 'Add Keyword';
+            document.getElementById('keyword-form').reset();
+            document.getElementById('keyword-id').value = '';
+            document.getElementById('keyword-modal').classList.add('active');
+        }
+
+        function closeKeywordModal() {
+            document.getElementById('keyword-modal').classList.remove('active');
+        }
+
+        function editKeyword(id) {
+            const kw = keywords.find(k => k.id === id);
+            if (!kw) return;
+
+            document.getElementById('keyword-modal-title').textContent = 'Edit Keyword';
+            document.getElementById('keyword-submit-text').textContent = 'Update Keyword';
+            document.getElementById('keyword-id').value = kw.id;
+            document.getElementById('keyword-text').value = kw.keyword;
+            document.getElementById('keyword-category').value = kw.category;
+            document.getElementById('keyword-modal').classList.add('active');
+        }
+
+        document.getElementById('keyword-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('keyword-id').value;
+            const data = {
+                keyword: document.getElementById('keyword-text').value,
+                category: document.getElementById('keyword-category').value
+            };
+
+            try {
+                let response;
+                if (id) {
+                    // Update
+                    response = await fetch(`/api/keywords/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    // Add
+                    response = await fetch('/api/keywords', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeKeywordModal();
+                    await loadKeywords();
+                } else {
+                    showToast(result.error || 'Operation failed', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Network error', 'error');
+            }
+        });
+
+        async function toggleKeyword(id) {
+            try {
+                const response = await fetch(`/api/keywords/${id}/toggle`, { method: 'POST' });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    await loadKeywords();
+                } else {
+                    showToast(result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to toggle keyword', 'error');
+            }
+        }
+
+        async function deleteKeyword(id) {
+            if (!confirm('Are you sure you want to delete this keyword?')) return;
+
+            try {
+                const response = await fetch(`/api/keywords/${id}`, { method: 'DELETE' });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    await loadKeywords();
+                } else {
+                    showToast(result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to delete keyword', 'error');
+            }
+        }
+
+        // ============================================================
+        // IMPORT / EXPORT
+        // ============================================================
+
+        function exportCompetitors() {
+            window.location.href = '/api/competitors/export';
+            showToast('Export started...', 'success');
+        }
+
+        function importCompetitors() {
+            createFileUpload(async (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                showToast('Importing...', 'info');
+
+                try {
+                    const response = await fetch('/api/competitors/import', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showToast(result.message, 'success');
+                        await loadCompetitors();
+                        if (result.errors && result.errors.length > 0) {
+                            alert('Warnings during import:\n' + result.errors.join('\n'));
+                        }
+                    } else {
+                        showToast(result.error, 'error');
+                        if (result.error.includes('Missing required')) {
+                            const dl = confirm('Invalid file format. Would you like to download the template?');
+                            if (dl) window.open('/api/competitors/template', '_blank');
+                        }
+                    }
+                } catch (error) {
+                    showToast('Network error during import', 'error');
+                }
+            });
+        }
+
+        function exportKeywords() {
+            window.location.href = '/api/keywords/export';
+            showToast('Export started...', 'success');
+        }
+
+        function importKeywords() {
+            createFileUpload(async (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                showToast('Importing...', 'info');
+
+                try {
+                    const response = await fetch('/api/keywords/import', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showToast(result.message, 'success');
+                        await loadKeywords();
+                        if (result.errors && result.errors.length > 0) {
+                            alert('Warnings during import:\n' + result.errors.join('\n'));
+                        }
+                    } else {
+                        showToast(result.error, 'error');
+                        if (result.error.includes('Missing required')) {
+                            const dl = confirm('Invalid file format. Would you like to download the template?');
+                            if (dl) window.open('/api/keywords/template', '_blank');
+                        }
+                    }
+                } catch (error) {
+                    showToast('Network error during import', 'error');
+                }
+            });
+        }
+
+        function createFileUpload(callback) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx';
+            input.onchange = (e) => {
+                if (e.target.files.length > 0) {
+                    callback(e.target.files[0]);
+                }
+            };
+            input.click();
+        }
+
+        // ============================================================
+        // UTILITIES
+        // ============================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            const bgColor = type === 'success' ? 'bg-green-500' : (type === 'info' ? 'bg-blue-500' : 'bg-red-500');
+            const icon = type === 'success' ? '✅' : (type === 'info' ? 'ℹ️' : '❌');
+
+            toast.className = `toast ${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center`;
+            toast.innerHTML = `
+                <span class="mr-3">${icon}</span>
+                <span>${escapeHtml(message)}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+
+</html>

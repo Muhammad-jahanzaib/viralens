@@ -1,0 +1,134 @@
+/* Custom styles for Royal Research Automation Dashboard */
+
+/* Smooth animations */
+* {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Stage item animations */
+.stage-item {
+    transition: all 0.3s ease-in-out;
+}
+
+.stage-item.stage-running {
+    background: linear-gradient(135deg, #EDE9FE 0%, #DBEAFE 100%);
+    transform: scale(1.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.stage-item.stage-running i {
+    color: #7C3AED;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.stage-item.stage-complete {
+    background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.stage-item.stage-complete i {
+    color: #059669;
+}
+
+/* Pulse animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Topic card hover effect */
+.topic-card {
+    transition: all 0.3s ease-in-out;
+}
+
+.topic-card:hover {
+    transform: translateX(4px);
+}
+
+/* Progress bar animation */
+#progressBar {
+    animation: shimmer 2s infinite linear;
+    background: linear-gradient(90deg, #7C3AED 0%, #6366F1 50%, #7C3AED 100%);
+    background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Button hover effects */
+button {
+    transition: all 0.2s ease-in-out;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Table hover effect */
+tbody tr {
+    transition: background-color 0.2s ease-in-out;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #7C3AED;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #6D28D9;
+}
+
+/* Loading spinner */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#resultsContainer {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Gradient text */
+.gradient-text {
+    background: linear-gradient(135deg, #7C3AED 0%, #6366F1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}

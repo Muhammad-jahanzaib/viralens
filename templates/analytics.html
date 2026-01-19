@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Title Analytics - ViraLens</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <a href="/" class="flex items-center gap-2 group">
+                        <div
+                            class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:bg-purple-700 transition-colors">
+                            V
+                        </div>
+                        <span
+                            class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
+                            ViraLens
+                        </span>
+                    </a>
+                    <span
+                        class="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs font-medium rounded-full border border-gray-200">
+                        Analytics
+                    </span>
+                </div>
+
+                <!-- Nav Links -->
+                <div class="flex items-center gap-4">
+                    <a href="/"
+                        class="text-gray-500 hover:text-purple-600 transition-colors flex items-center gap-1 font-medium">
+                        <i class="fas fa-search"></i> Research
+                    </a>
+                    <a href="/settings"
+                        class="text-gray-500 hover:text-purple-600 transition-colors flex items-center gap-1 font-medium">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">📊 Title Pattern Analytics</h1>
+            <p class="text-gray-600">See which title patterns perform best for YOUR channel based on your tracked
+                performance.</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div id="pattern-stats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Populated by JavaScript -->
+            <div class="animate-pulse bg-white p-6 rounded-xl shadow h-64"></div>
+            <div class="animate-pulse bg-white p-6 rounded-xl shadow h-64"></div>
+            <div class="animate-pulse bg-white p-6 rounded-xl shadow h-64"></div>
+        </div>
+
+        <!-- No Data State -->
+        <div id="no-data" class="hidden text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div class="text-6xl mb-4 bg-gray-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto">📊
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">No Performance Data Yet</h2>
+            <p class="text-gray-500 mb-6 max-w-md mx-auto">
+                Start tracking title performance in the Dashboard to see which viral patterns work best for your
+                audience.
+            </p>
+            <a href="/"
+                class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                <i class="fas fa-rocket"></i> Go to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function loadPatternStats() {
+            try {
+                const response = await fetch('/api/title-pattern-stats');
+                const result = await response.json();
+
+                const container = document.getElementById('pattern-stats');
+                const noData = document.getElementById('no-data');
+
+                if (result.success && result.data.length > 0) {
+                    noData.classList.add('hidden');
+                    container.classList.remove('hidden');
+                    renderStats(result.data);
+                } else {
+                    container.innerHTML = ''; // Clear loaders
+                    container.classList.add('hidden');
+                    noData.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+                document.getElementById('pattern-stats').innerHTML = '';
+                document.getElementById('no-data').classList.remove('hidden');
+            }
+        }
+
+        function renderStats(patterns) {
+            const container = document.getElementById('pattern-stats');
+
+            container.innerHTML = patterns.map((pattern, index) => `
+                <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">${index + 1}</span>
+                                ${pattern.pattern_type}
+                            </h3>
+                            <span class="px-2.5 py-1 ${getConfidenceBadge(pattern.confidence)} text-xs font-bold rounded-full uppercase tracking-wider">
+                                ${pattern.confidence} CONFIDENCE
+                            </span>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-gray-500 font-medium uppercase tracking-wide">Avg Views</span>
+                                    <span class="text-xl font-bold text-gray-900">${pattern.avg_views.toLocaleString()}</span>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                    <i class="fas fa-eye"></i>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="p-3 bg-green-50 rounded-lg border border-green-100">
+                                    <span class="text-xs text-green-700 font-medium uppercase block mb-1">CTR</span>
+                                    <span class="text-lg font-bold text-green-700">${pattern.avg_ctr}%</span>
+                                </div>
+                                <div class="p-3 bg-purple-50 rounded-lg border border-purple-100">
+                                    <span class="text-xs text-purple-700 font-medium uppercase block mb-1">AVD</span>
+                                    <span class="text-lg font-bold text-purple-700">${pattern.avg_avd}%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 text-sm text-gray-500">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Based on <strong>${pattern.sample_size}</strong> videos</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-lightbulb text-yellow-500 mt-0.5"></i>
+                            <p class="text-xs text-gray-600 italic">
+                                "${getRecommendation(pattern)}"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getConfidenceBadge(confidence) {
+            switch (confidence) {
+                case 'HIGH': return 'bg-green-100 text-green-700';
+                case 'MEDIUM': return 'bg-yellow-100 text-yellow-700';
+                case 'LOW': return 'bg-orange-100 text-orange-700';
+                default: return 'bg-gray-100 text-gray-600';
+            }
+        }
+
+        function getRecommendation(pattern) {
+            if (pattern.avg_views > 50000 && pattern.avg_ctr > 10) {
+                return '🔥 EXCELLENT - This pattern is crushing it! Prioritize using this formula.';
+            } else if (pattern.avg_views > 20000 && pattern.avg_ctr > 8) {
+                return '✅ GOOD - Reliable performer. Keep using consistently.';
+            } else if (pattern.avg_views > 10000) {
+                return '📈 DECENT - Good, but try twinning tweak thumbnails for better CTR.';
+            } else {
+                return '⚠️ MIXED RESULTS - Consider testing different variations of this pattern.';
+            }
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadPatternStats);
+    </script>
+</body>
+
+</html>
