@@ -402,7 +402,7 @@ def run_research(user_id=None) -> Dict:
     try:
         generator = ClaudeTopicGenerator(
             api_key=config.ANTHROPIC_API_KEY,
-            model='claude-3-5-haiku-20241022'
+            model='claude-3-5-sonnet-20240620'
         )
 
         # Prepare research data

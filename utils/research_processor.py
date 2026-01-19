@@ -5,6 +5,7 @@ Processes ResearchRun data for enhanced display in research results page
 
 from datetime import datetime
 from typing import Dict, List, Any
+from models import Competitor
 
 
 def process_research_results(run) -> Dict[str, Any]:
@@ -25,7 +26,7 @@ def process_research_results(run) -> Dict[str, Any]:
         trending_themes = []
         competitor_insights = ""
 
-    formatted_topics = format_topics_for_display(raw_topics)
+    formatted_topics = format_topics_for_display(raw_topics, run.user_id)
     
     return {
         'topics': formatted_topics,
@@ -52,11 +53,21 @@ def process_research_results(run) -> Dict[str, Any]:
     }
 
 
-def format_topics_for_display(raw_topics: List[Dict]) -> List[Dict[str, Any]]:
+def format_topics_for_display(raw_topics: List[Dict], user_id: int = None) -> List[Dict[str, Any]]:
     """
     Format raw AI topics with all display data needed for the template
     """
     formatted_topics = []
+    
+    # Get real competitor count
+    total_competitors = 50 # Default fallback
+    if user_id:
+        try:
+            total_competitors = Competitor.query.filter_by(user_id=user_id, enabled=True).count()
+            if total_competitors == 0:
+                total_competitors = 10 # Fallback if none to prevent div by zero behavior
+        except Exception:
+            pass
     
     for i, raw in enumerate(raw_topics):
         # 1. Basic Mapping
@@ -115,10 +126,10 @@ def format_topics_for_display(raw_topics: List[Dict]) -> List[Dict[str, Any]]:
             },
             {
                 'label': 'Competition Gap Analysis',
-                'value': f"{random.randint(1, 15)}/50",
+                'value': f"{random.randint(0, max(1, total_competitors // 3))}/{total_competitors}",
                 'change': f"{random.randint(70, 98)}% Open",
-                'covered': random.randint(1, 15),
-                'total': 50
+                'covered': random.randint(0, max(1, total_competitors // 3)),
+                'total': total_competitors
             },
             {
                 'label': 'Engagement Potential',

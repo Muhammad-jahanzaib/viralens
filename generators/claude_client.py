@@ -63,7 +63,8 @@ PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 {news}
 
 YOUR TASK:
-Generate STRICTLY 10 YouTube video topic recommendations based on the research data above.
+Generate STRICTLY 10 YouTube video topic recommendations. Do NOT output fewer than 10.
+If you run out of "breaking" ideas, use "Evergreen/Deep Dive" ideas to fill the quota.
 
 For each topic, provide:
 1. Compelling video title (60-70 chars, follows formula)
