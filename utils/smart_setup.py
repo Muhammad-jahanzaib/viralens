@@ -7,7 +7,10 @@ from anthropic import Anthropic
 from typing import Dict, List
 import json
 import logging
+import logging
 import sys
+from config import YOUTUBE_API_KEY
+from utils.youtube_validator import resolve_channel_id
 
 logger = logging.getLogger(__name__)
 
@@ -296,11 +299,14 @@ Output pure JSON only."""
                 exists = Competitor.query.filter((Competitor.user_id == user_id) & ((Competitor.name == comp['name']) | (Competitor.url == url))).first()
                 
                 if not exists:
-                    import re
-                    channel_id = None
-                    match = re.search(r"youtube\.com/channel/(UC[\w-]+)", url)
-                    if match:
-                        channel_id = match.group(1)
+                    # Resolve real Channel ID using API/Regex
+                    channel_id = resolve_channel_id(url, YOUTUBE_API_KEY)
+                    
+                    if not channel_id:
+                        # Fallback for old regex if API fails/missing? 
+                        # Actually resolve_channel_id handles regex too.
+                        # If still None, we can log warning but proceed (will show as error in UI but saved)
+                        logger.warning(f"Could not resolve Channel ID for {comp['name']} ({url})")
                         
                     new_comp = Competitor(
                         user_id=user_id,

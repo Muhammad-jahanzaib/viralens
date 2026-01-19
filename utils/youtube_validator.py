@@ -4,6 +4,11 @@ Utility functions to validate YouTube channel IDs
 """
 
 import re
+import logging
+from googleapiclient.discovery import build # type: ignore
+from googleapiclient.errors import HttpError # type: ignore
+
+logger = logging.getLogger(__name__)
 
 def validate_youtube_channel_id(channel_id):
     """
@@ -94,6 +99,73 @@ def extract_channel_id_from_url(url):
         return match.group(1)
     
     return None
+
+
+def resolve_channel_id(url, api_key):
+    """
+    Resolve Channel ID from URL using Regex or YouTube API.
+    
+    Args:
+        url (str): YouTube URL (handle, custom, or channel ID)
+        api_key (str): YouTube Data API Key
+        
+    Returns:
+        str or None: Resolved Channel ID or None if not found
+    """
+    if not url:
+        return None
+        
+    # 1. Try simple extraction first (no API cost)
+    channel_id = extract_channel_id_from_url(url)
+    if channel_id:
+        return channel_id
+        
+    # 2. Use API to resolve handle/user/search
+    if not api_key:
+        logger.warning("No YouTube API key provided for ID resolution")
+        return None
+        
+    try:
+        youtube = build('youtube', 'v3', developerKey=api_key)
+        
+        # Extract query from URL
+        # Handles: youtube.com/@handle
+        handle_match = re.search(r"youtube\.com/(@[\w-]+)", url)
+        
+        # User: youtube.com/user/username
+        user_match = re.search(r"youtube\.com/user/([\w-]+)", url)
+        
+        query = ""
+        if handle_match:
+            query = handle_match.group(1)
+        elif user_match:
+            query = user_match.group(1)
+        else:
+            # Fallback: take the last segment
+            clean_url = url.rstrip('/')
+            query = clean_url.split('/')[-1]
+            
+        logger.info(f"Resolving Channel ID for query: {query}")
+        
+        request = youtube.search().list(
+            part='snippet',
+            q=query,
+            type='channel',
+            maxResults=1
+        )
+        response = request.execute()
+        
+        if response.get('items'):
+            channel_id = response['items'][0]['snippet']['channelId']
+            logger.info(f"Resolved {url} -> {channel_id}")
+            return channel_id
+            
+        logger.warning(f"No channel found for {url}")
+        return None
+        
+    except Exception as e:
+        logger.error(f"Error resolving Channel ID: {e}")
+        return None
 
 
 def get_channel_id_help_text():
