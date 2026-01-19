@@ -28,7 +28,7 @@ ANALYSIS INSTRUCTIONS:
 3. Generate video ideas that are highly relevant to the provided data points.
 
 STRATEGIC GOALS:
-- Primary Goal: Generate 10 high-performing video topics (mix of Viral/Trending and Evergreen/Deep Dive).
+- Primary Goal: Generate 5 high-performing video topics (mix of Viral/Trending and Evergreen/Deep Dive).
 - Title Strategy: Use proven click-through formulas relevant to the identified niche (Action verbs, Curiosity gaps, Name-dropping key entities).
 - Audience Interaction: Focus on high-engagement angles (Debates, Reveals, Comparisons, "Truth about", "Why X is happening").
 
@@ -63,14 +63,14 @@ PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 {news}
 
 YOUR TASK:
-Generate STRICTLY 10 YouTube video topic recommendations. Do NOT output fewer than 10.
+Generate STRICTLY 5 YouTube video topic recommendations. Do NOT output fewer than 5.
 If you run out of "breaking" ideas, use "Evergreen/Deep Dive" ideas to fill the quota.
 
 For each topic, provide:
 1. Compelling video title (60-70 chars, follows formula)
 2. Video type (Breaking/Trending or Evergreen/Deep Dive)
 3. Hook (first 30 seconds script)
-4. 6-8 key points to cover
+4. 4-5 key points to cover
 5. Evidence sources (cite specific data from research)
 6. Thumbnail concept (visual description)
 7. Target duration
