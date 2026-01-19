@@ -195,11 +195,15 @@ def run_research(user_id=None) -> Dict:
         )
 
         # Twitter Config
-        min_engagement = SYSTEM_CONFIG.get("collection_settings.twitter_min_engagement", config.MIN_TWITTER_ENGAGEMENT)
-        twitter = TwitterCollector(
-            bearer_token=config.TWITTER_BEARER_TOKEN,
-            min_engagement=min_engagement
-        )
+        twitter = None
+        if config.TWITTER_BEARER_TOKEN:
+            min_engagement = SYSTEM_CONFIG.get("collection_settings.twitter_min_engagement", config.MIN_TWITTER_ENGAGEMENT)
+            twitter = TwitterCollector(
+                bearer_token=config.TWITTER_BEARER_TOKEN,
+                min_engagement=min_engagement
+            )
+        else:
+            logger.info("ℹ️  Twitter API key not found, skipping Twitter collection")
 
         # Reddit Config
         reddit_conf = SYSTEM_CONFIG.get("reddit_config", {})
@@ -254,6 +258,9 @@ def run_research(user_id=None) -> Dict:
             return None
 
     def collect_twitter():
+        if not twitter:
+            return None
+            
         try:
             return TWITTER_BREAKER.call(
                 twitter.collect,
@@ -340,7 +347,7 @@ def run_research(user_id=None) -> Dict:
                     report['raw_data']['google_trends'] = result['data']
                     sources_collected.append('google_trends')
 
-                elif source_name == 'twitter':
+                elif source_name == 'twitter' and twitter:
                     formatted_data['twitter'] = twitter.format_for_prompt(result['data'])
                     report['raw_data']['twitter'] = result['data']
                     sources_collected.append('twitter')
