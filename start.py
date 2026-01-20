@@ -45,31 +45,17 @@ def main():
             db.create_all()
             print("✅ Database tables created")
             
-            # Create admin user if doesn't exist
-            admin = User.query.filter_by(email='admin@viralens.ai').first()
+            # Check if admin exists
+            admin = User.query.filter_by(username='admin').first()
             if not admin:
-                admin = User(
-                    email='admin@viralens.ai',
-                    username='admin',
-                    full_name='Admin User',
-                    niche='general',
-                    subscription_tier='agency',
-                    subscription_status='active',
-                    subscription_start=datetime.utcnow(),
-                    research_runs_this_month=0,
-                    total_research_runs=0,
-                    onboarding_completed=True
-                )
-                admin.set_password('admin123')
-                db.session.add(admin)
-                db.session.commit()
-                print("✅ Admin user created")
+                print("ℹ️  No admin user found.")
+                print("💡 To create an admin account, run: flask create-admin")
             else:
-                print("ℹ️  Admin user already exists")
+                print("✅ Admin user verified")
     except Exception as e:
         print(f"❌ Database initialization failed: {e}")
         # Suggest deleting the db file if it's a schema mismatch
-        print("💡 Tip: If this is a schema error, try deleting 'viralens.db' and running this script again.")
+        print("💡 Tip: If this is a schema error, try deleting 'instance/viralens.db' and running this script again.")
         sys.exit(1)
     
     print()
@@ -82,10 +68,6 @@ def main():
     print("   Sign up:       http://127.0.0.1:8000/signup")
     print("   Login:         http://127.0.0.1:8000/login")
     print("   Dashboard:     http://127.0.0.1:8000/dashboard")
-    print()
-    print("👤 Test credentials:")
-    print("   Email:    admin@viralens.ai")
-    print("   Password: admin123")
     print()
     print("Press Ctrl+C to stop the server")
     print("=" * 60)
