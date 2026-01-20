@@ -128,22 +128,26 @@ def resolve_channel_id(url, api_key):
     try:
         youtube = build('youtube', 'v3', developerKey=api_key)
         
-        # Extract query from URL
-        # Handles: youtube.com/@handle
-        handle_match = re.search(r"youtube\.com/(@[\w-]+)", url)
-        
-        # User: youtube.com/user/username
-        user_match = re.search(r"youtube\.com/user/([\w-]+)", url)
-        
         query = ""
-        if handle_match:
-            query = handle_match.group(1)
-        elif user_match:
-            query = user_match.group(1)
+        # Handle standalone handles (e.g. "@MKBHD")
+        if url.startswith('@'):
+            query = url
         else:
-            # Fallback: take the last segment
-            clean_url = url.rstrip('/')
-            query = clean_url.split('/')[-1]
+            # Extract query from URL
+            # Handles: youtube.com/@handle
+            handle_match = re.search(r"(@[\w-]+)", url)
+            
+            # User: youtube.com/user/username
+            user_match = re.search(r"youtube\.com/user/([\w-]+)", url)
+            
+            if handle_match:
+                query = handle_match.group(1)
+            elif user_match:
+                query = user_match.group(1)
+            else:
+                # Fallback: take the last segment
+                clean_url = url.rstrip('/')
+                query = clean_url.split('/')[-1]
             
         logger.info(f"Resolving Channel ID for query: {query}")
         
