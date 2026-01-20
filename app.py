@@ -12,6 +12,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash
 import logging
 from flask_mail import Mail
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from models import db, User, ResearchRun, TitlePerformance, Keyword, Competitor, UserConfig
 from main import ResearchOrchestrator
@@ -34,6 +35,7 @@ from utils.security import (
 
 # Initialize Flask app
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 csrf = CSRFProtect(app)
 mail = Mail()
 

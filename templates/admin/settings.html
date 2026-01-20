@@ -156,6 +156,7 @@
         <div class="section-card">
             <h3>General Settings</h3>
             <form method="post" action="{{ url_for('admin.update_settings') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="tab" value="general">
                 <div class="form-group">
                     <label>Site Name</label>
@@ -190,6 +191,7 @@
         <div class="section-card">
             <h3>Email Configuration</h3>
             <form method="post" action="{{ url_for('admin.update_settings') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="tab" value="email">
                 <div class="form-group">
                     <label>SMTP Server</label>
@@ -223,6 +225,7 @@
         <div class="section-card">
             <h3>Security Settings</h3>
             <form method="post" action="{{ url_for('admin.update_settings') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="tab" value="security">
                 <div class="form-group">
                     <label>Session Timeout (minutes)</label>
@@ -259,6 +262,7 @@
             </div>
             <br>
             <form method="post" action="{{ url_for('admin.update_settings') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="tab" value="api">
                 <div class="form-group">
                     <label>YouTube API Key</label>
