@@ -1,17 +1,10 @@
 {
-  "timestamp": "2026-01-19T17:04:10.807509",
-  "duration_seconds": 21.080671072006226,
-  "total_tests": 22,
-  "passed": 22,
+  "timestamp": "2026-01-20T14:04:27.341472",
+  "duration_seconds": 1.3952109813690186,
+  "total_tests": 0,
+  "passed": 0,
   "failed": 0,
-  "pass_rate": 100.0,
+  "pass_rate": 0,
   "bugs": [],
-  "warnings": [
-    {
-      "category": "Title Prediction",
-      "title": "Quality test incomplete",
-      "description": "Title prediction system needs live testing with actual data",
-      "timestamp": "2026-01-19T17:04:10.753562"
-    }
-  ]
+  "warnings": []
 }

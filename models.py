@@ -51,7 +51,15 @@ class User(UserMixin, db.Model):
     user_config = db.relationship('UserConfig', backref='user', uselist=False, cascade='all, delete-orphan')
     
     def set_password(self, password):
-        """Hash and set password"""
+        """Hash and set password with validation"""
+        import re
+        if len(password) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        if not re.search(r'[A-Z]', password):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r'[0-9]', password):
+            raise ValueError("Password must contain at least one number")
+            
         self.password_hash = generate_password_hash(password)
     
     def check_password(self, password):

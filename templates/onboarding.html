@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quick Setup - ViraLens</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -213,9 +214,23 @@
     </div>
 
     <script>
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+        if (!csrfToken) {
+            console.error('CSRF Token missing from meta tag!');
+        } else {
+            console.log('CSRF Token found');
+        }
+
         async function skipSetup() {
             try {
-                const response = await fetch('/api/complete-onboarding', { method: 'POST' });
+                const response = await fetch('/api/complete-onboarding', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                });
                 const result = await response.json();
                 if (result.success) {
                     window.location.href = '/settings';
@@ -262,7 +277,10 @@
             try {
                 const response = await fetch('/api/smart-setup', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
                     body: JSON.stringify(formData)
                 });
 

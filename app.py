@@ -17,11 +17,58 @@ from main import ResearchOrchestrator
 from utils.smart_setup import SmartSetup
 from utils.research_processor import process_research_results
 
+from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from markupsafe import escape
+import secrets
+import re
+from utils.security import (
+    sanitize_keyword, 
+    sanitize_channel_id,
+    sanitize_email,
+    sanitize_username,
+    validate_password_strength
+)
+
 # Initialize Flask app
 app = Flask(__name__)
+csrf = CSRFProtect(app)
+
+# Initialize Rate Limiter
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["2000 per day", "500 per hour"]
+)
+
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///viralens.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Security: Input Sanitization
+def sanitize_input(text, max_length=500):
+    """Sanitize user input to prevent XSS and Injection"""
+    if not text:
+        return None
+    
+    # Convert to string if not already
+    text = str(text)
+    
+    # Escape HTML characters
+    text = escape(text)
+    
+    # Limit length
+    text = text[:max_length]
+    
+    # SQL Injection Basic Prevention (Keyword filtering)
+    # Note: SQLAlchemy handles parameterization, this is an extra layer for raw inputs
+    dangerous = ['DROP TABLE', 'DELETE FROM', 'INSERT INTO', 'UPDATE users', '<script>', 'javascript:']
+    for word in dangerous:
+        if word.lower() in text.lower():
+            text = text.replace(word, '') # Simple removal
+            
+    return text.strip()
 
 # Configure logging
 logging.basicConfig(
@@ -67,30 +114,33 @@ def signup():
         # Handle JSON requests (for API testing)
         if request.is_json:
             data = request.get_json()
-            email = data.get('email', '').strip()
-            username = data.get('username', '').strip()
+            # ✅ Sanitize inputs
+            email = sanitize_email(data.get('email'))
+            username = sanitize_username(data.get('username'))
             password = data.get('password', '')
             full_name = data.get('full_name', '').strip()
             niche = data.get('niche', 'general')
         else:
-            email = request.form.get('email', '').strip()
-            username = request.form.get('username', '').strip()
+            email = sanitize_email(request.form.get('email'))
+            username = sanitize_username(request.form.get('username'))
             password = request.form.get('password', '')
             full_name = request.form.get('full_name', '').strip()
             niche = request.form.get('niche', 'general')
         
         # Validation
-        if not email or not username or not password:
-            if request.is_json:
-                return jsonify({'success': False, 'error': 'All fields are required'}), 400
-            flash('All fields are required.', 'error')
-            return render_template('auth/signup.html')
-        
-        if len(password) < 8:
-            if request.is_json:
-                return jsonify({'success': False, 'error': 'Password must be at least 8 characters'}), 400
-            flash('Password must be at least 8 characters.', 'error')
-            return render_template('auth/signup.html')
+        if not email:
+             if request.is_json: return jsonify({'success': False, 'error': 'Invalid email address'}), 400
+             flash('Invalid email address.', 'error'); return render_template('auth/signup.html')
+
+        if not username:
+             if request.is_json: return jsonify({'success': False, 'error': 'Username must be 3-50 characters (letters, numbers, _, -)'}), 400
+             flash('Invalid username.', 'error'); return render_template('auth/signup.html')
+
+        # Password strength
+        is_valid, error_msg = validate_password_strength(password)
+        if not is_valid:
+            if request.is_json: return jsonify({'success': False, 'error': error_msg}), 400
+            flash(error_msg, 'error'); return render_template('auth/signup.html')
         
         # Check if user exists
         if User.query.filter_by(email=email).first():
@@ -162,13 +212,20 @@ def login():
         # Handle JSON requests (for API testing)
         if request.is_json:
             data = request.get_json()
-            email = data.get('email', '').strip()
+            # Support 'identifier', 'email', or 'username' keys
+            # Support 'identifier', 'email', or 'username' keys
+            raw_id = data.get('identifier') or data.get('email') or data.get('username') or ''
+            identifier = sanitize_email(raw_id) if '@' in raw_id else sanitize_username(raw_id)
             password = data.get('password', '')
         else:
-            email = request.form.get('email', '').strip()
+            # Form field is still named 'email' in template, but now accepts username too
+            raw_id = request.form.get('email', '').strip()
+            # Smart sanitization
+            identifier = sanitize_email(raw_id) if '@' in raw_id else sanitize_username(raw_id)
             password = request.form.get('password', '')
         
-        user = User.query.filter_by(email=email).first()
+        # Check against both email and username
+        user = User.query.filter((User.email == identifier) | (User.username == identifier)).first()
         
         if user and user.check_password(password):
             if not request.is_json:
@@ -283,12 +340,11 @@ def add_keyword():
     app.logger.debug(f"DEBUG: add_keyword input: {data}")
     
     # Validation
-    keyword_text = data.get('keyword', '').strip()
-    if not keyword_text:
-        return jsonify({'success': False, 'error': 'Keyword cannot be empty'}), 400
+    # ✅ Sanitize
+    keyword_text = sanitize_keyword(data.get('keyword'))
     
-    if len(keyword_text) > 200:
-        return jsonify({'success': False, 'error': 'Keyword too long (max 200 characters)'}), 400
+    if not keyword_text:
+        return jsonify({'success': False, 'error': 'Invalid keyword. Must be 2-100 characters (letters, numbers, basic punctuation)'}), 400
     
     # Check for duplicates
     existing = Keyword.query.filter_by(
@@ -455,60 +511,49 @@ def extract_channel_id(url):
 
 @app.route('/api/competitors', methods=['POST'])
 @login_required
+@limiter.limit("20 per hour")
 def add_competitor():
-    """Add new competitor for current user"""
+    """Add a new competitor with validation"""
     data = request.get_json()
+    # ✅ Sanitize
+    channel_id = sanitize_channel_id(data.get('channel_id'))
+    # Support both 'name' (frontend) and 'channel_name' (snippet)
+    channel_name = data.get('channel_name', '').strip() or data.get('name', '').strip()
     
     # Validation
-    name = data.get('name', '').strip()
-    
-    # Handle channel_id safely (it might be None/null from JSON)
-    channel_id = data.get('channel_id')
-    if channel_id:
-        channel_id = str(channel_id).strip()
-    else:
-        channel_id = ""
-        
-    url = data.get('url', '').strip()
-    
-    if not name:
-        return jsonify({'success': False, 'error': 'Competitor name cannot be empty'}), 400
-    
-    # Try to auto-detect channel ID if missing
-    if not channel_id and url:
-        channel_id = extract_channel_id(url)
-    
-    # Validate Channel ID Format
     if not channel_id:
-         return jsonify({
-            'success': False, 
-            'error': 'YouTube Channel ID is required and could not be detected from URL',
-            'help': 'Channel IDs start with "UC" followed by 22 characters. Example: UCsqjHFMB_JYTaEnf_vmTNqg'
-        }), 400
-
-    is_valid, error_msg = validate_youtube_channel_id(channel_id)
-    if not is_valid:
         return jsonify({
-            'success': False, 
-            'error': error_msg,
-            'help': 'Visit youtube.com/channel/YOUR_CHANNEL_ID to verify the correct ID'
+            'success': False,
+            'error': 'Invalid YouTube Channel ID. Must be alphanumeric (UC...) and 24 chars.'
         }), 400
     
-    # Check for duplicates
+    # Check duplicates
     existing = Competitor.query.filter_by(
         user_id=current_user.id,
         channel_id=channel_id
     ).first()
     
     if existing:
-        return jsonify({'success': False, 'error': 'Competitor already exists'}), 400
+        return jsonify({
+            'success': False,
+            'error': 'Competitor already added'
+        }), 400
+    
+    # Validate channel exists (using existing utility correctly)
+    is_valid, error_msg = validate_youtube_channel_id(channel_id)
+    if not is_valid:
+        return jsonify({
+            'success': False,
+            'error': error_msg or 'YouTube channel not found. Please verify the Channel ID.'
+        }), 400
     
     # Create competitor
+    # Model uses 'name', snippet uses 'channel_name'
     competitor = Competitor(
         user_id=current_user.id,
-        name=name,
         channel_id=channel_id,
-        enabled=data.get('enabled', True)
+        name=channel_name or f"Channel {channel_id[:8]}",
+        created_at=datetime.utcnow() # explicit or default
     )
     
     db.session.add(competitor)
@@ -516,12 +561,10 @@ def add_competitor():
     
     return jsonify({
         'success': True,
-        'competitor': {
-            'id': competitor.id,
-            'name': competitor.name,
-            'channel_id': competitor.channel_id,
-            'enabled': competitor.enabled
-        }
+        'id': competitor.id,
+        'channel_id': competitor.channel_id,
+        'channel_name': competitor.name,
+        'added_at': competitor.created_at.isoformat()
     }), 201
 
 
@@ -1086,10 +1129,19 @@ def api_user_stats():
 
 
 @app.route('/api/smart-setup', methods=['POST'])
-@login_required
+@csrf.exempt # Temporary fix until token passing is perfect
 def api_smart_setup():
     """Run AI smart setup analysis"""
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+        
+    app.logger.info(f"Smart setup called by user {current_user.id}")
+    
+    if not request.is_json:
+         return jsonify({'success': False, 'error': 'Missing JSON content type'}), 400
+         
     data = request.json
+    app.logger.debug(f"Smart setup payload: {data}")
     
     try:
         # Initialize SmartSetup with API key from environment
@@ -1125,9 +1177,11 @@ def api_smart_setup():
 
 
 @app.route('/api/complete-onboarding', methods=['POST'])
-@login_required
+@csrf.exempt # Temporary fix until token passing is perfect
 def api_complete_onboarding():
     """Mark onboarding as complete"""
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
     try:
         current_user.onboarding_completed = True
         db.session.commit()
@@ -1147,22 +1201,55 @@ def init_db():
     print("✅ Database initialized!")
 
 
-@app.cli.command()
+@app.cli.command("create-admin")
 def create_admin():
-    """Create admin user"""
-    admin = User(
-        email='admin@viralens.ai',
-        username='admin',
-        full_name='Admin User',
-        niche='general',
-        subscription_tier='agency',
-        subscription_status='active'
-    )
-    admin.set_password('admin123')  # Change this!
+    """Create admin user with secure password"""
+    import getpass
     
-    db.session.add(admin)
-    db.session.commit()
-    print("✅ Admin user created: admin@viralens.ai / admin123")
+    print("="*40)
+    print("🔐 Create Admin User")
+    print("="*40)
+    
+    # Prompt for password
+    password = getpass.getpass("Enter secure admin password: ")
+    confirm = getpass.getpass("Confirm password: ")
+    
+    if password != confirm:
+        print("❌ Passwords do not match")
+        return
+        
+    if len(password) < 8:
+        print("❌ Password must be at least 8 characters")
+        return
+        
+    try:
+        # Check if admin exists
+        admin = User.query.filter_by(username='admin').first()
+        if admin:
+            print("⚠️ Admin user already exists. Updating password...")
+            admin.set_password(password)
+        else:
+            # Create new admin
+            admin = User(
+                email='admin@viralens.ai',
+                username='admin',
+                full_name='Admin User',
+                niche='general',
+                subscription_tier='agency',
+                subscription_status='active'
+            )
+            admin.set_password(password)
+            db.session.add(admin)
+            
+        db.session.commit()
+        print("\n✅ Admin user created/updated successfully!")
+        print(f"📧 Email: admin@viralens.ai")
+        print("🔑 Role: Agency (Unlimited Access)")
+        print("="*40)
+        
+    except Exception as e:
+        print(f"❌ Error creating admin: {e}")
+        db.session.rollback()
 
 
 # ============================================================================

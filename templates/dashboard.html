@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - ViralLens</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         * {
             margin: 0;
@@ -499,7 +500,7 @@
         <!-- Page Header -->
         <div class="page-header">
             <h1>Welcome back, {{ current_user.full_name or current_user.username }}! 👋</h1>
-            <p>Your viral content research dashboard</p>
+            <p>Your content research dashboard</p>
         </div>
 
         <!-- Stats Grid -->
@@ -551,7 +552,7 @@
 
         <!-- Action Section -->
         <div class="action-section">
-            <h2>Ready to Generate Viral Content Ideas?</h2>
+            <h2>Ready to Generate Content Ideas?</h2>
             <p>Analyze 5 data sources in 30 seconds to get AI-powered topic recommendations</p>
             <div id="initialState">
                 <button class="btn btn-white" onclick="runResearch()">
@@ -735,7 +736,7 @@
             <div class="empty-state">
                 <div class="empty-state-icon">🔍</div>
                 <h3>No research runs yet</h3>
-                <p>Click "Run Research Now" to generate your first viral content ideas!</p>
+                <p>Click "Run Research Now" to generate your first content ideas!</p>
             </div>
             {% endif %}
         </div>
@@ -830,9 +831,13 @@
 
             // 3. Make the API Call
             try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                 const response = await fetch('/api/run-research', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    }
                 });
 
                 const data = await response.json();

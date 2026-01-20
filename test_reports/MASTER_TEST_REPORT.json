@@ -1,27 +1,20 @@
 {
-  "timestamp": "2026-01-19T17:04:13.017522",
-  "duration_seconds": 23.479778051376343,
+  "timestamp": "2026-01-20T14:04:27.504038",
+  "duration_seconds": 1.7535219192504883,
   "test_suites": {
     "browser_tests": {
-      "timestamp": "2026-01-19T17:04:10.807509",
-      "duration_seconds": 21.080671072006226,
-      "total_tests": 22,
-      "passed": 22,
+      "timestamp": "2026-01-20T14:04:27.341472",
+      "duration_seconds": 1.3952109813690186,
+      "total_tests": 0,
+      "passed": 0,
       "failed": 0,
-      "pass_rate": 100.0,
+      "pass_rate": 0,
       "bugs": [],
-      "warnings": [
-        {
-          "category": "Title Prediction",
-          "title": "Quality test incomplete",
-          "description": "Title prediction system needs live testing with actual data",
-          "timestamp": "2026-01-19T17:04:10.753562"
-        }
-      ]
+      "warnings": []
     },
     "api_tests": {
       "status": "FAILED",
-      "output": "\n\u001b[94m\u001b[1m======================================================================\n  VIRALENS AUTOMATED TEST SUITE\n======================================================================\u001b[0m\n\nTesting against: http://127.0.0.1:8000\nStarted at: 2026-01-19 17:04:10\n\n\u001b[92m\u2705 Server is running\u001b[0m\n\n\u001b[92m\u2705 Landing page accessible\u001b[0m\n\u001b[92m\u2705 Signup successful\u001b[0m\n\u001b[92m\u2705 Duplicate email rejected\u001b[0m\n\u001b[92m\u2705 Login successful\u001b[0m\n\u001b[92m\u2705 Invalid credentials rejected\u001b[0m\n\u001b[92m\u2705 Protected routes require login\u001b[0m\n\u001b[92m\u2705 Logout clears session\u001b[0m\n\u001b[92m\u2705 Keyword added successfully\u001b[0m\n\u001b[92m\u2705 Keywords retrieved successfully\u001b[0m\n\u001b[92m\u2705 Keyword edited successfully\u001b[0m\n\u001b[92m\u2705 Keyword toggled successfully\u001b[0m\n\u001b[92m\u2705 Keyword deleted successfully\u001b[0m\n\u001b[92m\u2705 Keyword categories saved correctly\u001b[0m\n\u001b[92m\u2705 Competitor added successfully\u001b[0m\n\u001b[92m\u2705 Competitors retrieved successfully\u001b[0m\n\u001b[92m\u2705 Competitor toggled successfully\u001b[0m\n\u001b[92m\u2705 Competitor deleted successfully\u001b[0m\n\u001b[92m\u2705 Competitor enabled field correct\u001b[0m\n\u001b[92m\u2705 Keyword isolation verified\u001b[0m\n\u001b[92m\u2705 Competitor isolation verified\u001b[0m\n\u001b[92m\u2705 Cross-user deletion blocked\u001b[0m\n\u001b[92m\u2705 Cross-user toggle blocked\u001b[0m\n\u001b[92m\u2705 Default category works\u001b[0m\n\u001b[92m\u2705 Empty keyword rejected\u001b[0m\n\u001b[92m\u2705 Long keyword handled\u001b[0m\n\u001b[92m\u2705 Special characters handled\u001b[0m\n\n\u001b[94m\u001b[1m======================================================================\n  TEST SUMMARY\n======================================================================\u001b[0m\n\nTotal Tests:  26\n\u001b[92mPassed:       26\u001b[0m\n\nSuccess Rate: 100.0%\n\n\u001b[92m\u001b[1m\ud83c\udf89 ALL TESTS PASSED! System is production-ready!\u001b[0m\n\n"
+      "output": "\n\u001b[94m\u001b[1m======================================================================\n  VIRALENS AUTOMATED TEST SUITE\n======================================================================\u001b[0m\n\nTesting against: http://127.0.0.1:8000\nStarted at: 2026-01-20 14:04:27\n\n\u001b[91m\u274c Server is not running at http://127.0.0.1:8000\u001b[0m\n\nPlease start the server first:\n  cd /Users/jahanzeb/Desktop/Code/royal-research-automation\n  python3 app.py\n\n"
     },
     "title_prediction": {
       "quality_score": 100.0,

@@ -1,0 +1,58 @@
+{
+    "collection_settings": {
+        "max_keywords": 4,
+        "twitter_min_engagement": 10,
+        "reddit_min_upvotes": 50,
+        "google_trends_fail_fast": true,
+        "enable_newsapi": false
+    },
+    "reddit_config": {
+        "auto_detect_subreddit": true,
+        "default_subreddit": "cars",
+        "fallback_subreddits": [
+            "Autos",
+            "whatcarshouldIbuy"
+        ]
+    },
+    "performance_tuning": {
+        "parallel_collection_timeout": 90,
+        "max_retry_attempts": 1,
+        "retry_on_rate_limit": false
+    },
+    "niche_config": {
+        "name": "",
+        "description": "Car reviews, industry news, enthusiast content",
+        "primary_subreddit": "cars",
+        "suggested_competitors": [
+            "Doug DeMuro",
+            "TheStraightPipes",
+            "Throttle House"
+        ]
+    },
+    "niche_presets": {
+        "automotive": {
+            "twitter_min_engagement": 500,
+            "max_keywords": 4,
+            "reddit_min_upvotes": 50,
+            "default_subreddit": "cars"
+        },
+        "royal_family": {
+            "twitter_min_engagement": 5000,
+            "max_keywords": 6,
+            "reddit_min_upvotes": 200,
+            "default_subreddit": "SaintMeghanMarkle"
+        },
+        "tech": {
+            "twitter_min_engagement": 1000,
+            "max_keywords": 6,
+            "reddit_min_upvotes": 100,
+            "default_subreddit": "technology"
+        },
+        "finance": {
+            "twitter_min_engagement": 1000,
+            "max_keywords": 5,
+            "reddit_min_upvotes": 100,
+            "default_subreddit": "stocks"
+        }
+    }
+}

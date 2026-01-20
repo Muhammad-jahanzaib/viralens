@@ -212,9 +212,10 @@
         {% endwith %}
 
         <form method="POST" action="{{ url_for('login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" required placeholder="you@example.com" autofocus>
+                <label for="email">Email or Username</label>
+                <input type="text" id="email" name="email" required placeholder="Email or Username" autofocus>
             </div>
 
             <div class="form-group">
