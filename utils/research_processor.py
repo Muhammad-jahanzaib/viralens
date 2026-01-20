@@ -149,11 +149,19 @@ def format_topics_for_display(raw_topics: List[Dict], user_id: int = None) -> Li
         data_breakdown = []
         for s in raw_sources[:5]:
             if isinstance(s, dict):
+                # Robust link generation
+                raw_link = s.get('url') or s.get('link') or s.get('href')
+                final_link = raw_link if raw_link and (raw_link.startswith('http://') or raw_link.startswith('https://')) else None
+                
+                if not final_link:
+                    query = s.get('name') or s.get('platform') or s.get('source') or 'Verified Data Source'
+                    final_link = f"https://www.google.com/search?q={query.replace(' ', '+')}"
+
                 data_breakdown.append({
                     'source': s.get('platform', 'Data Source'),
                     'metric': s.get('name', 'Evidence Point'),
                     'value': f"{s.get('hours_ago', '1')}h ago",
-                    'link': s.get('url') or s.get('link') or s.get('href') or f"https://www.google.com/search?q={s.get('name', '').replace(' ', '+')}"
+                    'link': final_link
                 })
 
         formatted_topics.append({
