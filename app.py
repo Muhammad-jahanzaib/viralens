@@ -39,7 +39,8 @@ csrf = CSRFProtect(app)
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,
-    default_limits=["2000 per day", "500 per hour"]
+    default_limits=["2000 per day", "500 per hour"],
+    storage_uri=os.environ.get("REDIS_URL", "memory://")
 )
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
