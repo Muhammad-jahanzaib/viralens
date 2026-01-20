@@ -36,6 +36,10 @@ class User(UserMixin, db.Model):
     research_runs_this_month = db.Column(db.Integer, default=0)
     total_research_runs = db.Column(db.Integer, default=0)
     
+    # Admin & Status
+    is_admin = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=True)
+    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
@@ -259,3 +263,66 @@ class TitlePerformance(db.Model):
     
     def __repr__(self):
         return f'<TitlePerformance {self.id}: {self.title[:50]}>'
+
+
+class AdminLog(db.Model):
+    """Track admin actions for audit trail"""
+    __tablename__ = 'admin_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    # Action details
+    action = db.Column(db.String(50), nullable=False)  # e.g., 'user_suspended', 'subscription_changed'
+    target_type = db.Column(db.String(50))  # e.g., 'User', 'ResearchRun'
+    target_id = db.Column(db.Integer)
+    description = db.Column(db.Text)
+    
+    # Metadata
+    ip_address = db.Column(db.String(50))
+    user_agent = db.Column(db.String(255))
+    
+    # Timestamp
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<AdminLog {self.id}: {self.action}>'
+
+
+class SystemSettings(db.Model):
+    """App-wide system settings"""
+    __tablename__ = 'system_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    value = db.Column(db.Text)
+    description = db.Column(db.Text)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<SystemSettings {self.key}>'
+
+
+class UserActivity(db.Model):
+    """Track user activity for analytics"""
+    __tablename__ = 'user_activity'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    # Activity details
+    action = db.Column(db.String(50), nullable=False)  # login, research_run, export, etc.
+    details = db.Column(db.JSON)
+    
+    # Session info
+    ip_address = db.Column(db.String(50))
+    user_agent = db.Column(db.String(255))
+    
+    # Timestamp
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    
+    def __repr__(self):
+        return f'<UserActivity {self.id}: {self.action}>'
