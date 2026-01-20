@@ -197,7 +197,7 @@ class NewsAggregator:
                             datetime.now(timezone.utc) - published_at
                         ).total_seconds() / 3600
 
-                        url = article.get('url', '')
+                        url = article.get('url')
                         if not url:
                             continue
 
@@ -208,8 +208,8 @@ class NewsAggregator:
                             'author': article.get('author', 'Unknown'),
                             'published_at': published_at.isoformat(),
                             'url': url,
-                            'description': (article.get('description', '') or '')[:200],
-                            'content': (article.get('content', '') or '')[:300],
+                            'description': (article.get('description') or '')[:200],
+                            'content': (article.get('content') or '')[:300],
                             'source_type': 'NewsAPI',
                             'hours_ago': round(hours_ago, 1),
                             'matched_keywords': [keyword]

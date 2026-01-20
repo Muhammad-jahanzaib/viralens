@@ -214,6 +214,10 @@ def send_system_email(recipient_email, subject, template, user_id=None, **kwargs
             html=html_content
         )
         
+        # Debug logging
+        sender = current_app.config.get('MAIL_DEFAULT_SENDER')
+        print(f"Sending email to {recipient_email}. Subject: {subject}. Sender: {sender}")
+        
         # Send email
         mail.send(msg)
         

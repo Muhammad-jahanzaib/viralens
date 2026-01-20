@@ -18,7 +18,7 @@ class ConfigurationError(Exception):
 # ============================================================================
 
 # Twitter API
-TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
+TWITTER_BEARER_TOKEN = (os.getenv("TWITTER_BEARER_TOKEN") or "").strip()
 
 # Reddit API
 REDDIT_CLIENT_ID = os.getenv("REDDIT_CLIENT_ID")
@@ -26,13 +26,13 @@ REDDIT_CLIENT_SECRET = os.getenv("REDDIT_CLIENT_SECRET")
 REDDIT_USER_AGENT = os.getenv("REDDIT_USER_AGENT")
 
 # YouTube API
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+YOUTUBE_API_KEY = (os.getenv("YOUTUBE_API_KEY") or "").strip()
 
 # News API
-NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")
+NEWSAPI_KEY = (os.getenv("NEWSAPI_KEY") or "").strip()
 
 # Anthropic API (for Claude)
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+ANTHROPIC_API_KEY = (os.getenv("ANTHROPIC_API_KEY") or "").strip()
 
 # Email Configuration
 SMTP_EMAIL = os.getenv("SMTP_EMAIL")
