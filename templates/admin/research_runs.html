@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Research Runs - Admin Panel - VIRALENS{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="admin-header">
+        <h1>🔬 Research Run Monitoring</h1>
+        <div class="admin-nav">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.users') }}">Users</a>
+            <a href="{{ url_for('admin.research_runs') }}" class="active">Research Runs</a>
+            <a href="{{ url_for('admin.analytics') }}">Analytics</a>
+            <a href="{{ url_for('admin.logs') }}">Audit Logs</a>
+            <a href="{{ url_for('admin.settings') }}">Settings</a>
+            <a href="{{ url_for('dashboard') }}" class="btn-back">← Back to App</a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🔬</div>
+            <div class="stat-content">
+                <div class="stat-label">Total Runs</div>
+                <div class="stat-value">{{ pagination.total }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⏱️</div>
+            <div class="stat-content">
+                <div class="stat-label">Total Runtime</div>
+                <div class="stat-value">{{ "%.1f"|format(total_runtime/60) }} min</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-content">
+                <div class="stat-label">Avg Runtime</div>
+                <div class="stat-value">{{ "%.1f"|format(avg_runtime) }}s</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+                <div class="stat-label">Total API Cost</div>
+                <div class="stat-value">${{ "%.2f"|format(total_api_cost) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="table-header">
+            <h2>All Research Runs</h2>
+            <a href="{{ url_for('admin.export_research') }}" class="btn-action">📥 Export CSV</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Keywords</th>
+                        <th>Topics</th>
+                        <th>Sources</th>
+                        <th>Runtime</th>
+                        <th>API Cost</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for run in runs %}
+                    <tr>
+                        <td>#{{ run.id }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.user_detail', user_id=run.user_id) }}">
+                                User #{{ run.user_id }}
+                            </a>
+                        </td>
+                        <td>{{ run.keywords|length if run.keywords else 0 }}</td>
+                        <td>{{ run.topics_generated }}</td>
+                        <td>{{ run.sources_successful }}</td>
+                        <td>{{ "%.1f"|format(run.runtime_seconds) }}s</td>
+                        <td>${{ "%.2f"|format(run.api_cost) if run.api_cost else '0.00' }}</td>
+                        <td>{{ run.created_at.strftime('%Y-%m-%d %H:%M') if run.created_at else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.research_runs', page=pagination.prev_num, user_id=user_id) }}"
+                class="page-link">← Previous</a>
+            {% endif %}
+            {% for page in pagination.iter_pages() %}
+            {% if page %}
+            <a href="{{ url_for('admin.research_runs', page=page, user_id=user_id) }}"
+                class="page-link {% if page == pagination.page %}active{% endif %}">{{ page }}</a>
+            {% else %}
+            <span class="page-link">...</span>
+            {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+            <a href="{{ url_for('admin.research_runs', page=pagination.next_num, user_id=user_id) }}"
+                class="page-link">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

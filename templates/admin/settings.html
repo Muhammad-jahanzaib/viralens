@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Admin Panel - VIRALENS{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="admin-header">
+        <h1>⚙️ System Settings</h1>
+        <div class="admin-nav">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.users') }}">Users</a>
+            <a href="{{ url_for('admin.research_runs') }}">Research Runs</a>
+            <a href="{{ url_for('admin.analytics') }}">Analytics</a>
+            <a href="{{ url_for('admin.logs') }}">Audit Logs</a>
+            <a href="{{ url_for('admin.settings') }}" class="active">Settings</a>
+            <a href="{{ url_for('dashboard') }}" class="btn-back">← Back to App</a>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2>📧 Email Configuration</h2>
+        <form method="post" action="{{ url_for('admin.update_settings') }}">
+            <div class="form-group">
+                <label>SMTP Server</label>
+                <input type="text" name="setting_smtp_server"
+                    value="{{ settings.smtp_server.value if settings.smtp_server else '' }}"
+                    placeholder="smtp.gmail.com">
+            </div>
+            <div class="form-group">
+                <label>SMTP Port</label>
+                <input type="number" name="setting_smtp_port"
+                    value="{{ settings.smtp_port.value if settings.smtp_port else '587' }}">
+            </div>
+            <div class="form-group">
+                <label>From Email</label>
+                <input type="email" name="setting_from_email"
+                    value="{{ settings.from_email.value if settings.from_email else '' }}"
+                    placeholder="noreply@viralens.ai">
+            </div>
+            <button type="submit" class="btn-primary">💾 Save Email Settings</button>
+        </form>
+    </div>
+
+    <div class="section-card">
+        <h2>🔑 API Configuration</h2>
+        <form method="post" action="{{ url_for('admin.update_settings') }}">
+            <div class="form-group">
+                <label>YouTube API Key</label>
+                <input type="text" name="setting_youtube_api_key"
+                    value="{{ settings.youtube_api_key.value if settings.youtube_api_key else '' }}"
+                    placeholder="Your YouTube API key">
+            </div>
+            <div class="form-group">
+                <label>Google Search API Key</label>
+                <input type="text" name="setting_google_api_key"
+                    value="{{ settings.google_api_key.value if settings.google_api_key else '' }}"
+                    placeholder="Your Google API key">
+            </div>
+            <div class="form-group">
+                <label>Google Custom Search Engine ID</label>
+                <input type="text" name="setting_google_cse_id"
+                    value="{{ settings.google_cse_id.value if settings.google_cse_id else '' }}"
+                    placeholder="Your CSE ID">
+            </div>
+            <button type="submit" class="btn-primary">💾 Save API Keys</button>
+        </form>
+    </div>
+
+    <div class="section-card">
+        <h2>🎛️ Feature Toggles</h2>
+        <form method="post" action="{{ url_for('admin.update_settings') }}">
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="setting_allow_signups" value="true" {% if settings.allow_signups and
+                        settings.allow_signups.value=='true' %}checked{% endif %}>
+                    Allow New User Signups
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="setting_maintenance_mode" value="true" {% if settings.maintenance_mode
+                        and settings.maintenance_mode.value=='true' %}checked{% endif %}>
+                    Maintenance Mode (blocks all users except admins)
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="setting_require_email_verification" value="true" {% if
+                        settings.require_email_verification and settings.require_email_verification.value=='true'
+                        %}checked{% endif %}>
+                    Require Email Verification
+                </label>
+            </div>
+            <button type="submit" class="btn-primary">💾 Save Feature Settings</button>
+        </form>
+    </div>
+
+    <div class="section-card">
+        <h2>📊 Research Limits</h2>
+        <form method="post" action="{{ url_for('admin.update_settings') }}">
+            <div class="form-group">
+                <label>Free Tier Monthly Limit</label>
+                <input type="number" name="setting_free_tier_limit"
+                    value="{{ settings.free_tier_limit.value if settings.free_tier_limit else '5' }}">
+            </div>
+            <div class="form-group">
+                <label>Pro Tier Monthly Limit</label>
+                <input type="number" name="setting_pro_tier_limit"
+                    value="{{ settings.pro_tier_limit.value if settings.pro_tier_limit else '100' }}">
+            </div>
+            <div class="form-group">
+                <label>Agency Tier Monthly Limit</label>
+                <input type="number" name="setting_agency_tier_limit"
+                    value="{{ settings.agency_tier_limit.value if settings.agency_tier_limit else '1000' }}">
+            </div>
+            <button type="submit" class="btn-primary">💾 Save Limits</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #475569;
+        font-size: 14px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="number"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .form-group input[type="checkbox"] {
+        margin-right: 8px;
+    }
+</style>
+{% endblock %}
