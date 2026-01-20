@@ -43,6 +43,10 @@ limiter = Limiter(
     storage_uri=os.environ.get("REDIS_URL", "memory://")
 )
 
+# Register Admin Blueprint
+from admin_routes import admin_bp
+app.register_blueprint(admin_bp)
+
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///viralens.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
