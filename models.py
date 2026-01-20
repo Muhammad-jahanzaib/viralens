@@ -69,20 +69,20 @@ class User(UserMixin, db.Model):
     def can_run_research(self):
         """Check if user can run research based on subscription tier"""
         limits = {
-            'free': 5,
+            'free': 300, # Increased to allow ~10/day
             'pro': float('inf'),
             'agency': float('inf')
         }
-        return self.research_runs_this_month < limits.get(self.subscription_tier, 5)
+        return self.research_runs_this_month < limits.get(self.subscription_tier, 300)
     
     def get_remaining_runs(self):
         """Get remaining research runs for this month"""
         limits = {
-            'free': 5,
+            'free': 300, # Increased to allow ~10/day
             'pro': float('inf'),
             'agency': float('inf')
         }
-        limit = limits.get(self.subscription_tier, 5)
+        limit = limits.get(self.subscription_tier, 300)
         if limit == float('inf'):
             return 'Unlimited'
         return max(0, limit - self.research_runs_this_month)
