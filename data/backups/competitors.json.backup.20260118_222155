@@ -1,0 +1,15 @@
+{
+  "competitors": [
+    {
+      "id": 1,
+      "name": "BBC News",
+      "url": "https://www.youtube.com/@BBCNews",
+      "channel_id": "UC16niRr50-MSBwiO3YDb3RA",
+      "enabled": false,
+      "added_date": "2026-01-18T22:21:55.109602",
+      "last_checked": "2026-01-18T22:21:55.109608",
+      "status": "active",
+      "notes": "Test competitor"
+    }
+  ]
+}

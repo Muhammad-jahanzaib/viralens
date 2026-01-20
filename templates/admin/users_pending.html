@@ -1,0 +1,111 @@
+{% extends "admin/base_admin.html" %}
+
+{% block header_title %}⏳ Pending Approvals{% endblock %}
+
+{% block admin_content %}
+
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+            <div class="stat-label">Pending Approval</div>
+            <div class="stat-value">{{ pending_count }}</div>
+            <div class="stat-detail">Awaiting review</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+            <div class="stat-label">Approved Today</div>
+            <div class="stat-value">{{ approved_today }}</div>
+            <div class="stat-detail">{{ approved_this_week }} this week</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">❌</div>
+        <div class="stat-content">
+            <div class="stat-label">Rejected Today</div>
+            <div class="stat-value">{{ rejected_today }}</div>
+            <div class="stat-detail">{{ rejected_this_week }} this week</div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions Toolbar (hidden by default) -->
+<div id="bulk-actions-toolbar" style="display:none;" class="bulk-toolbar">
+    <span id="selected-count">0 users selected</span>
+    <button class="btn-success btn-sm" onclick="bulkApprove()">✓ Approve Selected</button>
+    <button class="btn-danger btn-sm" onclick="bulkReject()">✗ Reject Selected</button>
+</div>
+
+<!-- Pending Users Table -->
+<div class="section-card">
+    <h2>👥 Pending User Approvals</h2>
+
+    {% if pending_users %}
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th width="40"><input type="checkbox" id="select-all-users"></th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Full Name</th>
+                    <th>Niche</th>
+                    <th>Signup Date</th>
+                    <th>Days Waiting</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in pending_users %}
+                <tr>
+                    <td><input type="checkbox" class="user-checkbox" data-user-id="{{ user.id }}"></td>
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.full_name or '-' }}</td>
+                    <td>{{ user.niche or 'Not specified' }}</td>
+                    <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else 'N/A' }}</td>
+                    <td>
+                        {% if user.created_at %}
+                        {{ (now - user.created_at).days }} days
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.approve_user', user_id=user.id) }}"
+                            style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn-sm btn-success" title="Approve">✓ Approve</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.reject_user', user_id=user.id) }}"
+                            style="display:inline;" onsubmit="return confirm('Reject this user?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn-sm btn-danger" title="Reject">✗ Reject</button>
+                        </form>
+                        <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn-sm"
+                            title="View Details">👁 View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+        <h3>No Pending Approvals</h3>
+        <p style="color: #64748b;">All users have been reviewed. New signups will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/admin_bulk_actions.js') }}"></script>
+{% endblock %}

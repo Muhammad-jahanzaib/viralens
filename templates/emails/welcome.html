@@ -1,0 +1,18 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2>Welcome to ViralLens, {{ name }}! 🚀</h2>
+<p>We're thrilled to have you on board. Your account has been created successfully and is currently <strong>{{ status
+        }}</strong>.</p>
+
+{% if status == 'pending' %}
+<p>Our team is currently reviewing your application to ensure the highest quality of research in our community. You'll
+    receive another email as soon as your account is approved!</p>
+{% else %}
+<p>You can now start using ViralLens to automate your research and stay ahead of the competition.</p>
+<a href="{{ base_url }}/login" class="button">Log In to Dashboard</a>
+{% endif %}
+
+<p>If you have any questions, feel free to reply to this email or visit our support center.</p>
+<p>Best regards,<br>The ViralLens Team</p>
+{% endblock %}

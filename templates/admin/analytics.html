@@ -1,151 +1,43 @@
-{% extends "base.html" %}
+{% extends "admin/base_admin.html" %}
 
-{% block title %}Analytics - Admin Panel - VIRALENS{% endblock %}
+{% block header_title %}📈 Analytics Dashboard{% endblock %}
 
-{% block content %}
-<div class="admin-dashboard">
-    <div class="admin-header">
-        <h1>📊 Analytics Dashboard</h1>
-        <div class="admin-nav">
-            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('admin.users') }}">Users</a>
-            <a href="{{ url_for('admin.research_runs') }}">Research Runs</a>
-            <a href="{{ url_for('admin.analytics') }}" class="active">Analytics</a>
-            <a href="{{ url_for('admin.logs') }}">Audit Logs</a>
-            <a href="{{ url_for('admin.settings') }}">Settings</a>
-            <a href="{{ url_for('dashboard') }}" class="btn-back">← Back to App</a>
-        </div>
-    </div>
-
-    <!-- User Growth Chart -->
-    <div class="section-card">
-        <h2>📈 User Growth (Last 30 Days)</h2>
-        <div class="chart-placeholder">
-            <div class="chart-data">
-                {% for day in user_growth %}
-                <div class="chart-bar">
-                    <div class="bar"
-                        style="height: {{ (day.count / user_growth|map(attribute='count')|max * 100) if user_growth|length > 0 else 0 }}%">
-                    </div>
-                    <div class="bar-label">{{ day.date.strftime('%m/%d') if day.date else '' }}</div>
-                    <div class="bar-value">{{ day.count }}</div>
-                </div>
-                {% endfor %}
-            </div>
-            {% if not user_growth %}
-            <p class="no-data">No user growth data available</p>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Research Activity Chart -->
-    <div class="section-card">
-        <h2>🔬 Research Activity (Last 30 Days)</h2>
-        <div class="chart-placeholder">
-            <div class="chart-data">
-                {% for day in research_activity %}
-                <div class="chart-bar">
-                    <div class="bar bar-research"
-                        style="height: {{ (day.count / research_activity|map(attribute='count')|max * 100) if research_activity|length > 0 else 0 }}%">
-                    </div>
-                    <div class="bar-label">{{ day.date.strftime('%m/%d') if day.date else '' }}</div>
-                    <div class="bar-value">{{ day.count }}</div>
-                </div>
-                {% endfor %}
-            </div>
-            {% if not research_activity %}
-            <p class="no-data">No research activity data available</p>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Top Users -->
-    <div class="section-card">
-        <h2>🏆 Top Users by Activity</h2>
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>User</th>
-                        <th>Email</th>
-                        <th>Tier</th>
-                        <th>Research Runs</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user, run_count in top_users %}
-                    <tr>
-                        <td>#{{ loop.index }}</td>
-                        <td><strong>{{ user.username }}</strong></td>
-                        <td>{{ user.email }}</td>
-                        <td><span class="badge badge-{{ user.subscription_tier }}">{{ user.subscription_tier }}</span>
-                        </td>
-                        <td>{{ run_count }} runs</td>
-                        <td>
-                            <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn-sm">View</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% if not top_users %}
-        <p class="no-data">No user activity data available</p>
-        {% endif %}
-    </div>
-
-    <!-- Summary Stats -->
-    <div class="section-card">
-        <h2>📋 30-Day Summary</h2>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-content">
-                    <div class="stat-label">New Users</div>
-                    <div class="stat-value">{{ user_growth|sum(attribute='count') if user_growth else 0 }}</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🔬</div>
-                <div class="stat-content">
-                    <div class="stat-label">Research Runs</div>
-                    <div class="stat-value">{{ research_activity|sum(attribute='count') if research_activity else 0 }}
-                    </div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📊</div>
-                <div class="stat-content">
-                    <div class="stat-label">Avg per User</div>
-                    <div class="stat-value">
-                        {% if user_growth and research_activity %}
-                        {{ "%.1f"|format((research_activity|sum(attribute='count') /
-                        user_growth|sum(attribute='count'))) if user_growth|sum(attribute='count') > 0 else 0 }}
-                        {% else %}
-                        0
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-content">
-                    <div class="stat-label">Active Users</div>
-                    <div class="stat-value">{{ top_users|length }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block admin_extra_css %}
 <style>
+    /* Date Range Picker */
+    .date-range-picker {
+        background: white;
+        padding: 15px 20px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .date-range-picker label {
+        font-weight: 600;
+        color: #475569;
+    }
+
+    .date-range-picker select,
+    .date-range-picker input[type="date"] {
+        padding: 8px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+        min-width: 140px;
+    }
+
+    /* Chart Styles */
     .chart-placeholder {
         min-height: 300px;
         padding: 20px;
         background: #f8fafc;
         border-radius: 8px;
+        position: relative;
     }
 
     .chart-data {
@@ -170,6 +62,7 @@
         border-radius: 4px 4px 0 0;
         min-height: 10px;
         transition: all 0.3s;
+        position: relative;
     }
 
     .bar:hover {
@@ -191,24 +84,224 @@
         font-size: 11px;
         font-weight: 600;
         color: #1e293b;
-        position: relative;
-        top: -30px;
-    }
-
-    .no-data {
-        text-align: center;
-        color: #94a3b8;
-        padding: 60px;
-        font-style: italic;
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
     }
 
     @media (max-width: 768px) {
+        .date-range-picker {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
         .chart-data {
             overflow-x: auto;
+            justify-content: start;
+            gap: 10px;
+            padding-bottom: 10px;
+        }
+
+        .chart-bar {
+            min-width: 30px;
         }
     }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+{% endblock %}
 
-<!-- Optional: Add Chart.js for more advanced charts -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+{% block admin_content %}
+<!-- Controls -->
+<div class="date-range-picker">
+    <label>Time Period:</label>
+    <select id="period-select" onchange="toggleCustomDates()">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+        <option value="custom">Custom Range</option>
+    </select>
+
+    <div id="custom-dates" style="display:none; gap:10px; align-items:center;">
+        <input type="date" id="custom-start">
+        <span>to</span>
+        <input type="date" id="custom-end">
+    </div>
+
+    <div style="margin-left:auto; display:flex; gap:10px;">
+        <button class="btn-primary" onclick="updateCharts()">🔄 Update</button>
+        <button class="btn-action" style="background:#10b981;" onclick="exportAnalytics()">📥 Export PDF</button>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<div id="analytics-report">
+    <!-- Summary Stats (Moved to top for report) -->
+    <div class="section-card">
+        <h2>📋 Performance Summary</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <div class="stat-label">New Users</div>
+                    <div class="stat-value">{{ user_growth|sum(attribute='count') if user_growth else 0 }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔬</div>
+                <div class="stat-content">
+                    <div class="stat-label">Research Runs</div>
+                    <div class="stat-value">{{ research_activity|sum(attribute='count') if research_activity else 0 }}
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <div class="stat-label">Avg Runs/User</div>
+                    <div class="stat-value">
+                        {% if user_growth and research_activity %}
+                        {{ "%.1f"|format((research_activity|sum(attribute='count') /
+                        user_growth|sum(attribute='count'))) if user_growth|sum(attribute='count') > 0 else 0 }}
+                        {% else %}0{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-content">
+                    <div class="stat-label">Active Users</div>
+                    <div class="stat-value">{{ top_users|length }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Growth Chart -->
+    <div class="section-card">
+        <h2>📈 User Growth</h2>
+        <div class="chart-placeholder">
+            <div class="chart-data">
+                {% for day in user_growth %}
+                <div class="chart-bar">
+                    <div class="bar"
+                        style="height: {{ (day.count / user_growth|map(attribute='count')|max * 100) if user_growth|length > 0 else 0 }}%">
+                        <div class="bar-value">{{ day.count }}</div>
+                    </div>
+                    <div class="bar-label">
+                        {{ day.label }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if not user_growth %}<p class="no-data">No data available for this period</p>{% endif %}
+        </div>
+    </div>
+
+    <!-- Research Activity Chart -->
+    <div class="section-card">
+        <h2>🔬 Research Activity</h2>
+        <div class="chart-placeholder">
+            <div class="chart-data">
+                {% for day in research_activity %}
+                <div class="chart-bar">
+                    <div class="bar bar-research"
+                        style="height: {{ (day.count / research_activity|map(attribute='count')|max * 100) if research_activity|length > 0 else 0 }}%">
+                        <div class="bar-value">{{ day.count }}</div>
+                    </div>
+                    <div class="bar-label">
+                        {{ day.label }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if not research_activity %}<p class="no-data">No data available for this period</p>{% endif %}
+        </div>
+    </div>
+
+    <!-- Top Users Table -->
+    <div class="section-card">
+        <h2>🏆 Top Users</h2>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Tier</th>
+                        <th>Research Runs</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user, run_count in top_users %}
+                    <tr>
+                        <td>#{{ loop.index }}</td>
+                        <td><strong>{{ user.username }}</strong></td>
+                        <td>{{ user.email }}</td>
+                        <td><span class="badge badge-{{ user.subscription_tier }}">{{ user.subscription_tier }}</span>
+                        </td>
+                        <td>{{ run_count }} runs</td>
+                        <td><a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn-sm">View</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if not top_users %}<p class="no-data">No user activity data available</p>{% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block admin_scripts %}
+<script>
+    function toggleCustomDates() {
+        const select = document.getElementById('period-select');
+        const customDiv = document.getElementById('custom-dates');
+        if (select.value === 'custom') {
+            customDiv.style.display = 'flex';
+        } else {
+            customDiv.style.display = 'none';
+        }
+    }
+
+    function updateCharts() {
+        const period = document.getElementById('period-select').value;
+        let url = "{{ url_for('admin.analytics') }}?days=" + period;
+
+        if (period === 'custom') {
+            const start = document.getElementById('custom-start').value;
+            const end = document.getElementById('custom-end').value;
+            if (!start || !end) {
+                alert('Please select both start and end dates.');
+                return;
+            }
+            url = "{{ url_for('admin.analytics') }}?start=" + start + "&end=" + end;
+        }
+
+        window.location.href = url;
+    }
+
+    function exportAnalytics() {
+        const element = document.getElementById('analytics-report');
+        const opt = {
+            margin: 10,
+            filename: 'viralens_analytics_report.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Show loading state
+        const btn = document.querySelector('button[onclick="exportAnalytics()"]');
+        const originalText = btn.textContent;
+        btn.textContent = 'Generating PDF...';
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.textContent = originalText;
+        });
+    }
+</script>
 {% endblock %}

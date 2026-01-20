@@ -11,6 +11,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 import logging
+from flask_mail import Mail
 
 from models import db, User, ResearchRun, TitlePerformance, Keyword, Competitor, UserConfig
 from main import ResearchOrchestrator
@@ -34,6 +35,7 @@ from utils.security import (
 # Initialize Flask app
 app = Flask(__name__)
 csrf = CSRFProtect(app)
+mail = Mail()
 
 # Initialize Rate Limiter
 limiter = Limiter(
@@ -50,6 +52,14 @@ app.register_blueprint(admin_bp)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///viralens.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Mail Configuration
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'admin@viralens.ai')
 
 # Security: Input Sanitization
 def sanitize_input(text, max_length=500):
@@ -85,6 +95,7 @@ app.logger.setLevel(logging.DEBUG)
 
 # Initialize extensions
 db.init_app(app)
+mail.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -168,11 +179,7 @@ def signup():
             full_name=full_name,
             niche=niche,
             subscription_tier='free',
-            # subscription_status='active', # Removed as not in original model snippet, causing errors? 
-            # Re-adding based on user snippet provided models_v2, assuming they updated it.
-            # But I should stick to KNOWN model fields. 
-            # Original app.py lines 101-111 showed User instantiation.
-            # I will use safe kwargs.
+            approval_status='pending', # New users pending by default
             research_runs_this_month=0,
             total_research_runs=0
         )
@@ -186,6 +193,17 @@ def signup():
         
         db.session.add(user)
         db.session.commit()
+        
+        # Send Welcome Email
+        from utils.admin_utils import send_system_email
+        send_system_email(
+            user.email,
+            "Welcome to ViralLens! 🚀",
+            "welcome",
+            user_id=user.id,
+            name=user.full_name or user.username,
+            status=user.approval_status
+        )
         
         # Auto-login for web requests
         if not request.is_json:
@@ -233,6 +251,27 @@ def login():
         user = User.query.filter((User.email == identifier) | (User.username == identifier)).first()
         
         if user and user.check_password(password):
+            # NEW: Check approval status
+            if hasattr(user, 'approval_status'):
+                if user.approval_status == 'pending':
+                    if request.is_json:
+                        return jsonify({'success': False, 'error': 'Account pending approval'}), 403
+                    flash('⏳ Your account is awaiting admin approval. You will receive an email once approved.', 'warning')
+                    return redirect(url_for('login'))
+                elif user.approval_status == 'rejected':
+                    if request.is_json:
+                        return jsonify({'success': False, 'error': 'Account rejected'}), 403
+                    reason = user.rejection_reason or 'Account did not meet requirements'
+                    flash(f'❌ Your signup was not approved. Reason: {reason}', 'danger')
+                    return redirect(url_for('login'))
+            
+            # NEW: Check if account is suspended
+            if not user.is_active:
+                if request.is_json:
+                    return jsonify({'success': False, 'error': 'Account suspended'}), 403
+                flash('⛔ Your account has been suspended. Please contact support.', 'danger')
+                return redirect(url_for('login'))
+
             if not request.is_json:
                 remember = request.form.get('remember', False) == 'on'
                 login_user(user, remember=remember)
@@ -242,7 +281,7 @@ def login():
                 flash(f'Welcome back, {user.username}!', 'success')
                 
                 # Redirect to onboarding if not completed
-                if not user.onboarding_completed:
+                if not user.onboarding_completed and not user.is_admin:
                     return redirect(url_for('onboarding'))
 
                 # Redirect to next page or dashboard
@@ -1286,5 +1325,6 @@ if __name__ == '__main__':
         db.create_all()
         print("✅ Database tables created")
     
-    print("🚀 Starting ViralLens on http://127.0.0.1:8000")
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    port = int(os.environ.get('PORT', 8000))
+    print(f"🚀 Starting ViralLens on http://127.0.0.1:{port}")
+    app.run(host='0.0.0.0', port=port, debug=True)

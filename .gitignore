@@ -29,3 +29,28 @@ test_screenshots_deep/
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+migration_log.txt
+server.log
+
+# Test outputs
+test_output.txt
+DEEP_TEST_REPORT.json
+tests/test_screenshots/
+tests/test_screenshots_deep/
+tests/test_reports/
+
+# Temporary files
+cookies.txt
+*.tmp
+*.temp
+
+# Backups
+*.backup
+*.save
+*.old
+
+# Large files
+app_debug.log

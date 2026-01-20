@@ -1,0 +1,17 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2 style="color: #ef4444;">Account Suspended</h2>
+<p>Hello {{ name }},</p>
+<p>We are writing to inform you that your ViralLens account has been <strong>suspended</strong>.</p>
+
+<div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+    <p style="margin: 0; color: #92400e;"><strong>Note:</strong> While suspended, you will not be able to log in or
+        access any research data.</p>
+</div>
+
+<p>This action may have been taken due to a violation of our terms of service or a suspected security issue. If you
+    believe this suspension is incorrect, please contact our support team immediately.</p>
+
+<p>Best regards,<br>The ViralLens Security Team</p>
+{% endblock %}

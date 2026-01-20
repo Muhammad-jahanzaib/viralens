@@ -1,0 +1,32 @@
+{
+  "keywords": [
+    {
+      "id": 1,
+      "keyword": "Meghan Markle",
+      "enabled": true,
+      "category": "primary",
+      "added_date": "2026-01-18T22:21:55.112708"
+    },
+    {
+      "id": 2,
+      "keyword": "Prince Harry",
+      "enabled": true,
+      "category": "primary",
+      "added_date": "2026-01-18T22:21:55.112711"
+    },
+    {
+      "id": 3,
+      "keyword": "Archewell Foundation",
+      "enabled": true,
+      "category": "secondary",
+      "added_date": "2026-01-18T22:21:55.112712"
+    },
+    {
+      "id": 4,
+      "keyword": "Royal Family",
+      "enabled": true,
+      "category": "secondary",
+      "added_date": "2026-01-18T22:21:55.112712"
+    }
+  ]
+}

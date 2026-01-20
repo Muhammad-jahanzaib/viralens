@@ -1,153 +1,12 @@
-{% extends "base.html" %}
+{% extends "admin/base_admin.html" %}
 
-{% block title %}Users - Admin Panel - VIRALENS{% endblock %}
+{% block header_title %}👥 User Management{% endblock %}
 
-{% block content %}
-<div class="admin-dashboard">
-    <!-- Header -->
-    <div class="admin-header">
-        <h1>👥 User Management</h1>
-        <div class="admin-nav">
-            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('admin.users') }}" class="active">Users</a>
-            <a href="{{ url_for('admin.research_runs') }}">Research Runs</a>
-            <a href="{{ url_for('admin.analytics') }}">Analytics</a>
-            <a href="{{ url_for('admin.logs') }}">Audit Logs</a>
-            <a href="{{ url_for('admin.settings') }}">Settings</a>
-            <a href="{{ url_for('dashboard') }}" class="btn-back">← Back to App</a>
-        </div>
-    </div>
-
-    <!-- Search and Filters -->
-    <div class="section-card">
-        <form method="get" action="{{ url_for('admin.users') }}" class="filter-form">
-            <div class="filter-grid">
-                <div class="filter-item">
-                    <label>Search</label>
-                    <input type="text" name="search" value="{{ search }}" placeholder="Email, username, or name...">
-                </div>
-
-                <div class="filter-item">
-                    <label>Subscription Tier</label>
-                    <select name="tier">
-                        <option value="">All Tiers</option>
-                        <option value="free" {% if tier_filter=='free' %}selected{% endif %}>Free</option>
-                        <option value="pro" {% if tier_filter=='pro' %}selected{% endif %}>Pro</option>
-                        <option value="agency" {% if tier_filter=='agency' %}selected{% endif %}>Agency</option>
-                    </select>
-                </div>
-
-                <div class="filter-item">
-                    <label>Status</label>
-                    <select name="status">
-                        <option value="">All Users</option>
-                        <option value="active" {% if status_filter=='active' %}selected{% endif %}>Active</option>
-                        <option value="inactive" {% if status_filter=='inactive' %}selected{% endif %}>Inactive</option>
-                        <option value="admin" {% if status_filter=='admin' %}selected{% endif %}>Admins</option>
-                    </select>
-                </div>
-
-                <div class="filter-item">
-                    <button type="submit" class="btn-primary">Apply Filters</button>
-                    <a href="{{ url_for('admin.users') }}" class="btn-secondary">Clear</a>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- Users Table -->
-    <div class="section-card">
-        <div class="table-header">
-            <h2>All Users ({{ pagination.total }} total)</h2>
-            <a href="{{ url_for('admin.export_users') }}" class="btn-action">📥 Export CSV</a>
-        </div>
-
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Full Name</th>
-                        <th>Tier</th>
-                        <th>Status</th>
-                        <th>Research Runs</th>
-                        <th>Joined</th>
-                        <th>Last Login</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td>#{{ user.id }}</td>
-                        <td>
-                            <strong>{{ user.username }}</strong>
-                            {% if user.is_admin %}
-                            <span class="badge badge-admin">Admin</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ user.email }}</td>
-                        <td>{{ user.full_name or '-' }}</td>
-                        <td>
-                            <span class="badge badge-{{ user.subscription_tier }}">
-                                {{ user.subscription_tier }}
-                            </span>
-                        </td>
-                        <td>
-                            {% if user.is_active %}
-                            <span class="status-active">● Active</span>
-                            {% else %}
-                            <span class="status-inactive">● Inactive</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {{ user.total_research_runs or 0 }}
-                            <small>({{ user.research_runs_this_month or 0 }} this month)</small>
-                        </td>
-                        <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '-' }}</td>
-                        <td>{{ user.last_login.strftime('%Y-%m-%d') if user.last_login else 'Never' }}</td>
-                        <td>
-                            <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn-sm">View</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        {% if pagination.pages > 1 %}
-        <div class="pagination">
-            {% if pagination.has_prev %}
-            <a href="{{ url_for('admin.users', page=pagination.prev_num, search=search, tier=tier_filter, status=status_filter) }}"
-                class="page-link">← Previous</a>
-            {% endif %}
-
-            {% for page in pagination.iter_pages() %}
-            {% if page %}
-            <a href="{{ url_for('admin.users', page=page, search=search, tier=tier_filter, status=status_filter) }}"
-                class="page-link {% if page == pagination.page %}active{% endif %}">
-                {{ page }}
-            </a>
-            {% else %}
-            <span class="page-link">...</span>
-            {% endif %}
-            {% endfor %}
-
-            {% if pagination.has_next %}
-            <a href="{{ url_for('admin.users', page=pagination.next_num, search=search, tier=tier_filter, status=status_filter) }}"
-                class="page-link">Next →</a>
-            {% endif %}
-        </div>
-        {% endif %}
-    </div>
-</div>
-
+{% block admin_extra_css %}
 <style>
+    /* Filter Styles */
     .filter-form {
-        margin-bottom: 20px;
+        margin-bottom: 0;
     }
 
     .filter-grid {
@@ -157,37 +16,86 @@
         align-items: end;
     }
 
-    .filter-item label {
-        display: block;
-        margin-bottom: 5px;
+    /* Bulk Action Toolbar */
+    .bulk-toolbar {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e293b;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 100px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        z-index: 1000;
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translate(-50%, 100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+    }
+
+    .selected-info {
         font-weight: 600;
-        color: #475569;
         font-size: 14px;
+        color: #e2e8f0;
+        min-width: 120px;
     }
 
-    .filter-item input,
-    .filter-item select {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        font-size: 14px;
+    .bulk-actions {
+        display: flex;
+        gap: 8px;
+        padding-left: 20px;
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    .filter-item input:focus,
-    .filter-item select:focus {
-        outline: none;
-        border-color: #6366f1;
+    /* Custom Button Colors for Bulk Actions */
+    .btn-success {
+        background: #10b981;
+        color: white;
+        border: none;
+    }
+
+    .btn-success:hover {
+        background: #059669;
+    }
+
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+        border: none;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+    }
+
+    .btn-warning {
+        background: #f59e0b;
+        color: white;
+        border: none;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
     }
 
     .btn-primary {
-        padding: 10px 20px;
         background: #6366f1;
         color: white;
         border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
     }
 
     .btn-primary:hover {
@@ -196,62 +104,278 @@
 
     .btn-secondary {
         padding: 10px 20px;
-        background: #e2e8f0;
-        color: #475569;
+        background: #f1f5f9;
+        color: #64748b;
         border: none;
         border-radius: 6px;
         cursor: pointer;
         text-decoration: none;
         display: inline-block;
-        margin-left: 10px;
+        font-weight: 500;
+        transition: all 0.2s;
     }
 
     .btn-secondary:hover {
-        background: #cbd5e1;
+        background: #e2e8f0;
+        color: #334155;
     }
 
-    .table-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .table-header h2 {
-        margin: 0;
-    }
-
-    .pagination {
-        display: flex;
-        justify-content: center;
-        gap: 5px;
-        margin-top: 20px;
-    }
-
-    .page-link {
-        padding: 8px 12px;
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        color: #475569;
-        text-decoration: none;
-        font-size: 14px;
-    }
-
-    .page-link:hover {
-        background: #f8fafc;
-    }
-
-    .page-link.active {
-        background: #6366f1;
-        color: white;
-        border-color: #6366f1;
+    /* Checkbox Styles */
+    input[type="checkbox"] {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+        accent-color: #6366f1;
     }
 
     @media (max-width: 768px) {
         .filter-grid {
             grid-template-columns: 1fr;
         }
+
+        .bulk-toolbar {
+            width: 90%;
+            flex-direction: column;
+            gap: 10px;
+            bottom: 20px;
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .bulk-actions {
+            border-left: none;
+            padding-left: 0;
+            width: 100%;
+            justify-content: space-between;
+        }
     }
 </style>
+{% endblock %}
+
+{% block admin_content %}
+<!-- Search and Filters -->
+<div class="section-card">
+    <form method="get" action="{{ url_for('admin.users') }}" class="filter-form">
+        <div class="filter-grid">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Search</label>
+                <input type="text" name="search" value="{{ search }}" placeholder="Email, username, or name...">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Subscription Tier</label>
+                <select name="tier">
+                    <option value="">All Tiers</option>
+                    <option value="free" {% if tier_filter=='free' %}selected{% endif %}>Free</option>
+                    <option value="pro" {% if tier_filter=='pro' %}selected{% endif %}>Pro</option>
+                    <option value="agency" {% if tier_filter=='agency' %}selected{% endif %}>Agency</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Status</label>
+                <select name="status">
+                    <option value="">All Users</option>
+                    <option value="active" {% if status_filter=='active' %}selected{% endif %}>Active</option>
+                    <option value="suspended" {% if status_filter=='suspended' %}selected{% endif %}>Suspended</option>
+                    <option value="pending" {% if status_filter=='pending' %}selected{% endif %}>Pending Approval
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>&nbsp;</label>
+                <div style="display: flex;">
+                    <button type="submit" class="btn-primary"
+                        style="flex: 1; padding: 10px; border-radius: 6px; cursor: pointer;">Filter</button>
+                    <a href="{{ url_for('admin.users') }}" class="btn-secondary" style="margin-left: 10px;">Clear</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Users Table -->
+<div class="section-card">
+    <div class="table-header">
+        <h2>All Users ({{ pagination.total }} total)</h2>
+        <a href="{{ url_for('admin.export_users') }}" class="btn-action">📥 Export CSV</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th width="40"><input type="checkbox" id="select-all-users"></th>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Full Name</th>
+                    <th>Tier</th>
+                    <th>Status</th>
+                    <th>Approval</th>
+                    <th>Joined</th>
+                    <th>Last Login</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>
+                        <input type="checkbox" class="user-checkbox" data-user-id="{{ user.id }}">
+                    </td>
+                    <td>#{{ user.id }}</td>
+                    <td>
+                        <strong>{{ user.username }}</strong>
+                        {% if user.is_admin %}
+                        <span class="badge badge-admin">Admin</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.full_name or '-' }}</td>
+                    <td>
+                        <span class="badge badge-{{ user.subscription_tier }}">
+                            {{ user.subscription_tier }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if user.is_active %}
+                        <span class="status-active">● Active</span>
+                        {% else %}
+                        <span class="status-inactive">● Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.approval_status == 'pending' %}
+                        <span class="badge badge-warning">⏳ Pending</span>
+                        {% elif user.approval_status == 'approved' %}
+                        <span class="badge badge-success">✓ Approved</span>
+                        {% elif user.approval_status == 'rejected' %}
+                        <span class="badge badge-danger">✗ Rejected</span>
+                        {% else %}
+                        <span class="badge badge-secondary">Legacy</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '-' }}</td>
+                    <td>{{ user.last_login.strftime('%Y-%m-%d') if user.last_login else 'Never' }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn-sm">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('admin.users', page=pagination.prev_num, search=search, tier=tier_filter, status=status_filter) }}"
+            class="page-link">← Previous</a>
+        {% endif %}
+
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+        <a href="{{ url_for('admin.users', page=page, search=search, tier=tier_filter, status=status_filter) }}"
+            class="page-link {% if page == pagination.page %}active{% endif %}">
+            {{ page }}
+        </a>
+        {% else %}
+        <span class="page-link">...</span>
+        {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <a href="{{ url_for('admin.users', page=pagination.next_num, search=search, tier=tier_filter, status=status_filter) }}"
+            class="page-link">Next →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Bulk Actions Toolbar -->
+<div id="bulk-actions-toolbar" class="bulk-toolbar" style="display:none;">
+    <div class="selected-info">
+        <span id="selected-count">0</span> users selected
+    </div>
+    <div class="bulk-actions">
+        <!-- These are placeholders for now, functionality would need backend routes -->
+        <button class="btn-sm btn-success" onclick="bulkApprove()">✓ Approve</button>
+        <button class="btn-sm btn-danger" onclick="bulkReject()">✗ Reject</button>
+        <button class="btn-sm btn-warning" onclick="bulkSuspend()">⏸ Suspend</button>
+        <button class="btn-sm btn-primary" onclick="bulkActivate()">▶ Activate</button>
+        <button class="btn-sm btn-secondary" onclick="bulkExport()">📥 Export</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block admin_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAll = document.getElementById('select-all-users');
+        const userCheckboxes = document.querySelectorAll('.user-checkbox');
+        const bulkToolbar = document.getElementById('bulk-actions-toolbar');
+        const selectedCountSpan = document.getElementById('selected-count');
+
+        function updateToolbar() {
+            const selected = document.querySelectorAll('.user-checkbox:checked').length;
+            selectedCountSpan.textContent = selected;
+
+            if (selected > 0) {
+                bulkToolbar.style.display = 'flex';
+            } else {
+                bulkToolbar.style.display = 'none';
+            }
+        }
+
+        // Select All Handler
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                userCheckboxes.forEach(cb => {
+                    cb.checked = selectAll.checked;
+                });
+                updateToolbar();
+            });
+        }
+
+        // Individual Checkbox Handler
+        userCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                updateToolbar();
+                // Update Select All state
+                if (!this.checked) {
+                    selectAll.checked = false;
+                } else if (document.querySelectorAll('.user-checkbox:checked').length === userCheckboxes.length) {
+                    selectAll.checked = true;
+                }
+            });
+        });
+
+        // Bulk Action Placeholders
+        window.bulkApprove = function () {
+            alert('Bulk Approve feature coming soon! Selected IDs: ' + getSelectedIds().join(', '));
+        }
+
+        window.bulkReject = function () {
+            alert('Bulk Reject feature coming soon! Selected IDs: ' + getSelectedIds().join(', '));
+        }
+
+        window.bulkSuspend = function () {
+            if (confirm('Suspend ' + getSelectedIds().length + ' users?')) {
+                alert('Suspended! (Demo)');
+            }
+        }
+
+        window.bulkExport = function () {
+            alert('Exporting ' + getSelectedIds().length + ' users...');
+        }
+
+        function getSelectedIds() {
+            return Array.from(document.querySelectorAll('.user-checkbox:checked'))
+                .map(cb => cb.dataset.userId);
+        }
+    });
+</script>
 {% endblock %}

@@ -489,6 +489,10 @@
                         <div class="user-tier">{{ current_user.subscription_tier }} plan</div>
                     </div>
                 </div>
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary" style="margin-right: 0.5rem;">Admin
+                    Panel</a>
+                {% endif %}
                 <a href="/settings" class="btn btn-outline">Settings</a>
                 <a href="/logout" class="btn btn-danger">Logout</a>
             </div>

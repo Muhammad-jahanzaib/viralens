@@ -1,99 +1,236 @@
-{% extends "base.html" %}
+{% extends "admin/base_admin.html" %}
 
-{% block title %}Audit Logs - Admin Panel - VIRALENS{% endblock %}
+{% block header_title %}📜 Audit Logs{% endblock %}
 
-{% block content %}
-<div class="admin-dashboard">
-    <div class="admin-header">
-        <h1>📋 Audit Logs</h1>
-        <div class="admin-nav">
-            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('admin.users') }}">Users</a>
-            <a href="{{ url_for('admin.research_runs') }}">Research Runs</a>
-            <a href="{{ url_for('admin.analytics') }}">Analytics</a>
-            <a href="{{ url_for('admin.logs') }}" class="active">Audit Logs</a>
-            <a href="{{ url_for('admin.settings') }}">Settings</a>
-            <a href="{{ url_for('dashboard') }}" class="btn-back">← Back to App</a>
-        </div>
+{% block admin_extra_css %}
+<style>
+    /* Filters */
+    .filters-section {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 25px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filters-section input,
+    .filters-section select {
+        padding: 10px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+        min-width: 150px;
+    }
+
+    /* Expandable Details */
+    .log-details-row {
+        background-color: #f8fafc;
+        display: none;
+    }
+
+    .log-details-content {
+        padding: 20px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .detail-item strong {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 4px;
+    }
+
+    .detail-item pre {
+        background: white;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        margin: 0;
+        font-size: 13px;
+        white-space: pre-wrap;
+    }
+
+    .btn-toggle {
+        background: none;
+        border: none;
+        color: #6366f1;
+        cursor: pointer;
+        padding: 5px;
+        font-size: 14px;
+    }
+
+    .btn-toggle:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        .filters-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<!-- Filter Section -->
+<div class="filters-section">
+    <form id="filter-form" action="{{ url_for('admin.logs') }}" method="get" style="display:contents;">
+        <select name="action" id="action-filter">
+            <option value="">All Actions</option>
+            <option value="user_create" {% if action_filter=='user_create' %}selected{% endif %}>User Created</option>
+            <option value="user_approve" {% if action_filter=='user_approve' %}selected{% endif %}>User Approved
+            </option>
+            <option value="user_reject" {% if action_filter=='user_reject' %}selected{% endif %}>User Rejected</option>
+            <option value="user_suspend" {% if action_filter=='user_suspend' %}selected{% endif %}>User Suspended
+            </option>
+            <option value="user_delete" {% if action_filter=='user_delete' %}selected{% endif %}>User Deleted</option>
+            <option value="tier_change" {% if action_filter=='tier_change' %}selected{% endif %}>Tier Changed</option>
+            <option value="settings_update" {% if action_filter=='settings_update' %}selected{% endif %}>Settings
+                Updated</option>
+        </select>
+
+        <input type="date" name="date_from" id="log-date-from" value="{{ request.args.get('date_from', '') }}"
+            placeholder="From">
+        <input type="date" name="date_to" id="log-date-to" value="{{ request.args.get('date_to', '') }}"
+            placeholder="To">
+        <input type="text" name="ip_address" id="ip-filter" value="{{ request.args.get('ip_address', '') }}"
+            placeholder="IP Address">
+
+        <select name="admin_id" id="admin-filter">
+            <option value="">All Admins</option>
+            <!-- In a real app, populate this from passed admin users context -->
+        </select>
+
+        <button type="submit" class="btn-sm">Apply Filters</button>
+        <a href="{{ url_for('admin.logs') }}" class="btn-secondary"
+            style="text-decoration:none; padding:10px 15px; display:inline-block;">Clear</a>
+    </form>
+</div>
+
+<!-- Logs Table -->
+<div class="section-card">
+    <div class="table-header">
+        <h2>Admin Action History ({{ pagination.total }})</h2>
+        <button class="btn-action" style="background:#10b981;" onclick="exportLogs()">📥 Export Logs</button>
     </div>
 
-    <div class="section-card">
-        <form method="get" action="{{ url_for('admin.logs') }}" class="filter-form">
-            <div class="filter-grid">
-                <div class="filter-item">
-                    <label>Action Type</label>
-                    <select name="action">
-                        <option value="">All Actions</option>
-                        {% for action in actions %}
-                        <option value="{{ action }}" {% if action_filter==action %}selected{% endif %}>
-                            {{ action }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="filter-item">
-                    <button type="submit" class="btn-primary">Apply Filter</button>
-                    <a href="{{ url_for('admin.logs') }}" class="btn-secondary">Clear</a>
-                </div>
-            </div>
-        </form>
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th width="30"></th>
+                    <th>ID</th>
+                    <th>Admin</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>Description</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>
+                        <button class="btn-toggle" onclick="toggleDetails({{ log.id }})">▶</button>
+                    </td>
+                    <td>#{{ log.id }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.user_detail', user_id=log.admin_id) }}">
+                            Admin #{{ log.admin_id }}
+                        </a>
+                    </td>
+                    <td><span class="action-badge">{{ log.action }}</span></td>
+                    <td>{{ log.target_type }} #{{ log.target_id if log.target_id else '-' }}</td>
+                    <td>{{ log.description or '-' }}</td>
+                    <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '-' }}</td>
+                </tr>
+                <!-- Expandable Details Row -->
+                <tr id="details-{{ log.id }}" class="log-details-row">
+                    <td colspan="7" class="log-details-content">
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <strong>Full Description</strong>
+                                <pre>{{ log.description or 'No description provided.' }}</pre>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Metadata</strong>
+                                <pre>IP Address: {{ log.ip_address }}
+User Agent: Mozilla/5.0... (Placeholder)
+Metadata: {}</pre>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
-    <div class="section-card">
-        <h2>Admin Action History ({{ pagination.total }} total)</h2>
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Admin</th>
-                        <th>Action</th>
-                        <th>Target</th>
-                        <th>Description</th>
-                        <th>IP Address</th>
-                        <th>Timestamp</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in logs %}
-                    <tr>
-                        <td>#{{ log.id }}</td>
-                        <td>
-                            <a href="{{ url_for('admin.user_detail', user_id=log.admin_id) }}">
-                                Admin #{{ log.admin_id }}
-                            </a>
-                        </td>
-                        <td><span class="action-badge">{{ log.action }}</span></td>
-                        <td>{{ log.target_type }} #{{ log.target_id if log.target_id else '-' }}</td>
-                        <td>{{ log.description or '-' }}</td>
-                        <td>{{ log.ip_address }}</td>
-                        <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '-' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('admin.logs', page=pagination.prev_num, action=action_filter) }}" class="page-link">←
+            Previous</a>
+        {% endif %}
 
-        {% if pagination.pages > 1 %}
-        <div class="pagination">
-            {% if pagination.has_prev %}
-            <a href="{{ url_for('admin.logs', page=pagination.prev_num, action=action_filter) }}" class="page-link">←
-                Previous</a>
-            {% endif %}
-            {% for page in pagination.iter_pages() %}
-            {% if page %}
-            <a href="{{ url_for('admin.logs', page=page, action=action_filter) }}"
-                class="page-link {% if page == pagination.page %}active{% endif %}">{{ page }}</a>
-            {% else %}
-            <span class="page-link">...</span>
-            {% endif %}
-            {% endfor %}
-            {% if pagination.has_next %}
-            <a href="{{ url_for('admin.logs', page=pagination.next_num, action=action_filter) }}" class="page-link">Next
-                →</a>
-            {% endif %}
-        </div>
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+        <a href="{{ url_for('admin.logs', page=page, action=action_filter) }}"
+            class="page-link {% if page == pagination.page %}active{% endif %}">{{ page }}</a>
+        {% else %}
+        <span class="page-link">...</span>
+        {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <a href="{{ url_for('admin.logs', page=pagination.next_num, action=action_filter) }}" class="page-link">Next
+            →</a>
         {% endif %}
     </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block admin_scripts %}
+<script>
+    function toggleDetails(id) {
+        const row = document.getElementById('details-' + id);
+        const btn = document.querySelector(`button[onclick="toggleDetails(${id})"]`);
+
+        if (row.style.display === 'table-row') {
+            row.style.display = 'none';
+            btn.textContent = '▶';
+        } else {
+            row.style.display = 'table-row';
+            btn.textContent = '▼';
+        }
+    }
+
+    function exportLogs() {
+        // Build query string from current filters
+        const form = document.getElementById('filter-form');
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+
+        // In a real implementation, you'd likely have a dedicated export route
+        // window.location.href = "{{ url_for('admin.logs') }}?export=csv&" + params.toString();
+        alert('Exporting logs with params: ' + params.toString());
+    }
+</script>
 {% endblock %}

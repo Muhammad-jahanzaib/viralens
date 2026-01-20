@@ -78,20 +78,25 @@ python main.py --test           # Run a quick test (dry run)
 
 ## 📁 Project Structure
 
--   `main.py`: Core orchestration logic.
--   `app.py`: Flask web application and API.
--   `collectors/`: Modules for each data source.
--   `generators/`: AI prompt engineering and interaction.
--   `utils/`: Helper functions and managers.
--   `templates/`: HTML for the dashboard.
--   `data/`: Stores generated reports and settings database.
+```
+├── app.py                      # Main Flask application
+├── admin_routes.py             # Admin panel logic
+├── models.py                   # Database models
+├── utils/                      # Core utility modules
+├── scripts/                    # Maintenance & deployment scripts
+├── tests/                      # Automated test suite
+├── templates/                  # Application templates (admin/auth/emails)
+├── static/                     # CSS/JS assets
+├── docs/                       # Documentation archive
+└── viralens.db                 # SQLite database
+```
 
 ## 📚 Documentation
 
--   [Architecture Overview](ARCHITECTURE.md)
--   [API Reference](API.md)
--   [Deployment Guide](DEPLOYMENT.md)
--   [Troubleshooting](TROUBLESHOOTING.md)
+-   [Project Completion Summary](PROJECT_COMPLETION_SUMMARY.md) - **Start Here**
+-   [Admin Panel User Guide](ADMIN_PANEL_USER_GUIDE.md)
+-   [Developer Handoff](DEVELOPER_HANDOFF.md)
+-   [Email System Implementation](EMAIL_SYSTEM_IMPLEMENTATION.md)
 
 ## 🤝 Contributing
 

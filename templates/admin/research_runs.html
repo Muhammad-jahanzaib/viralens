@@ -1,115 +1,318 @@
-{% extends "base.html" %}
+{% extends "admin/base_admin.html" %}
 
-{% block title %}Research Runs - Admin Panel - VIRALENS{% endblock %}
+{% block header_title %}🔍 Research Runs{% endblock %}
 
-{% block content %}
-<div class="admin-dashboard">
-    <div class="admin-header">
-        <h1>🔬 Research Run Monitoring</h1>
-        <div class="admin-nav">
-            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('admin.users') }}">Users</a>
-            <a href="{{ url_for('admin.research_runs') }}" class="active">Research Runs</a>
-            <a href="{{ url_for('admin.analytics') }}">Analytics</a>
-            <a href="{{ url_for('admin.logs') }}">Audit Logs</a>
-            <a href="{{ url_for('admin.settings') }}">Settings</a>
-            <a href="{{ url_for('dashboard') }}" class="btn-back">← Back to App</a>
+{% block admin_extra_css %}
+<style>
+    /* Filters */
+    .filters-section {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 25px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filters-section input[type="text"],
+    .filters-section input[type="date"],
+    .filters-section select {
+        padding: 10px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+        min-width: 150px;
+    }
+
+    .filters-section input[type="text"] {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    /* Bulk Action Toolbar */
+    .bulk-toolbar {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e293b;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 100px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        z-index: 1000;
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translate(-50%, 100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+    }
+
+    .selected-info {
+        font-weight: 600;
+        font-size: 14px;
+        min-width: 100px;
+    }
+
+    .bulk-actions {
+        display: flex;
+        gap: 8px;
+        padding-left: 20px;
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+        border: none;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+    }
+
+    .btn-secondary {
+        padding: 10px 20px;
+        background: #f1f5f9;
+        color: #64748b;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .btn-secondary:hover {
+        background: #e2e8f0;
+    }
+
+    /* Checkboxes */
+    input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #6366f1;
+        cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+        .filters-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .bulk-toolbar {
+            width: 90%;
+            flex-direction: column;
+            bottom: 20px;
+            border-radius: 12px;
+        }
+
+        .bulk-actions {
+            border-left: none;
+            padding-left: 0;
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">🔬</div>
+        <div class="stat-content">
+            <div class="stat-label">Total Runs</div>
+            <div class="stat-value">{{ pagination.total }}</div>
         </div>
     </div>
-
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">🔬</div>
-            <div class="stat-content">
-                <div class="stat-label">Total Runs</div>
-                <div class="stat-value">{{ pagination.total }}</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">⏱️</div>
-            <div class="stat-content">
-                <div class="stat-label">Total Runtime</div>
-                <div class="stat-value">{{ "%.1f"|format(total_runtime/60) }} min</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">⚡</div>
-            <div class="stat-content">
-                <div class="stat-label">Avg Runtime</div>
-                <div class="stat-value">{{ "%.1f"|format(avg_runtime) }}s</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-content">
-                <div class="stat-label">Total API Cost</div>
-                <div class="stat-value">${{ "%.2f"|format(total_api_cost) }}</div>
-            </div>
+    <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-content">
+            <div class="stat-label">Total Runtime</div>
+            <div class="stat-value">{{ "%.1f"|format(total_runtime/60) }} min</div>
         </div>
     </div>
-
-    <div class="section-card">
-        <div class="table-header">
-            <h2>All Research Runs</h2>
-            <a href="{{ url_for('admin.export_research') }}" class="btn-action">📥 Export CSV</a>
+    <div class="stat-card">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-content">
+            <div class="stat-label">Avg Runtime</div>
+            <div class="stat-value">{{ "%.1f"|format(avg_runtime) }}s</div>
         </div>
-
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>User</th>
-                        <th>Keywords</th>
-                        <th>Topics</th>
-                        <th>Sources</th>
-                        <th>Runtime</th>
-                        <th>API Cost</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for run in runs %}
-                    <tr>
-                        <td>#{{ run.id }}</td>
-                        <td>
-                            <a href="{{ url_for('admin.user_detail', user_id=run.user_id) }}">
-                                User #{{ run.user_id }}
-                            </a>
-                        </td>
-                        <td>{{ run.keywords|length if run.keywords else 0 }}</td>
-                        <td>{{ run.topics_generated }}</td>
-                        <td>{{ run.sources_successful }}</td>
-                        <td>{{ "%.1f"|format(run.runtime_seconds) }}s</td>
-                        <td>${{ "%.2f"|format(run.api_cost) if run.api_cost else '0.00' }}</td>
-                        <td>{{ run.created_at.strftime('%Y-%m-%d %H:%M') if run.created_at else '-' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+            <div class="stat-label">Total API Cost</div>
+            <div class="stat-value">${{ "%.2f"|format(total_api_cost) }}</div>
         </div>
-
-        {% if pagination.pages > 1 %}
-        <div class="pagination">
-            {% if pagination.has_prev %}
-            <a href="{{ url_for('admin.research_runs', page=pagination.prev_num, user_id=user_id) }}"
-                class="page-link">← Previous</a>
-            {% endif %}
-            {% for page in pagination.iter_pages() %}
-            {% if page %}
-            <a href="{{ url_for('admin.research_runs', page=page, user_id=user_id) }}"
-                class="page-link {% if page == pagination.page %}active{% endif %}">{{ page }}</a>
-            {% else %}
-            <span class="page-link">...</span>
-            {% endif %}
-            {% endfor %}
-            {% if pagination.has_next %}
-            <a href="{{ url_for('admin.research_runs', page=pagination.next_num, user_id=user_id) }}"
-                class="page-link">Next →</a>
-            {% endif %}
-        </div>
-        {% endif %}
     </div>
 </div>
+
+<!-- Filters -->
+<div class="filters-section">
+    <input type="text" placeholder="Search by user email or ID..." id="search-user">
+    <input type="date" id="date-from" placeholder="From">
+    <input type="date" id="date-to" placeholder="To">
+    <select id="status-filter">
+        <option value="all">All Status</option>
+        <option value="completed">Completed</option>
+        <option value="failed">Failed</option>
+    </select>
+    <input type="number" id="min-runtime" placeholder="Min Runtime (s)" style="width: 120px;">
+    <input type="number" id="min-topics" placeholder="Min Topics" style="width: 100px;">
+    <button class="btn-sm" onclick="applyFilters()">Apply Filters</button>
+    <button class="btn-secondary" onclick="clearFilters()">Clear</button>
+</div>
+
+<!-- Research Runs Table -->
+<div class="section-card">
+    <div class="table-header">
+        <h2>All Research Runs</h2>
+        <a href="{{ url_for('admin.export_research') }}" class="btn-action">📥 Export CSV</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th width="40"><input type="checkbox" id="select-all-runs"></th>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Keywords</th>
+                    <th>Topics</th>
+                    <th>Sources</th>
+                    <th>Runtime</th>
+                    <th>API Cost</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for run in runs %}
+                <tr>
+                    <td><input type="checkbox" class="run-checkbox" data-run-id="{{ run.id }}"></td>
+                    <td>#{{ run.id }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.user_detail', user_id=run.user_id) }}">
+                            User #{{ run.user_id }}
+                        </a>
+                    </td>
+                    <td>{{ run.keywords|length if run.keywords else 0 }}</td>
+                    <td>{{ run.topics_generated }}</td>
+                    <td>{{ run.sources_successful }}</td>
+                    <td>{{ "%.1f"|format(run.runtime_seconds) }}s</td>
+                    <td>${{ "%.2f"|format(run.api_cost) if run.api_cost else '0.00' }}</td>
+                    <td>{{ run.created_at.strftime('%Y-%m-%d %H:%M') if run.created_at else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('admin.research_runs', page=pagination.prev_num, user_id=user_id) }}" class="page-link">←
+            Previous</a>
+        {% endif %}
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+        <a href="{{ url_for('admin.research_runs', page=page, user_id=user_id) }}"
+            class="page-link {% if page == pagination.page %}active{% endif %}">{{ page }}</a>
+        {% else %}
+        <span class="page-link">...</span>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <a href="{{ url_for('admin.research_runs', page=pagination.next_num, user_id=user_id) }}" class="page-link">Next
+            →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Bulk Actions Toolbar -->
+<div id="bulk-actions-toolbar" class="bulk-toolbar" style="display:none;">
+    <div class="selected-info">
+        <span id="selected-count">0</span> runs selected
+    </div>
+    <div class="bulk-actions">
+        <button class="btn-sm btn-primary" onclick="bulkExport()">Export Selected</button>
+        <button class="btn-sm btn-danger" onclick="bulkDelete()">Delete Selected</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block admin_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Filter Logic (Frontend Placeholder)
+        window.applyFilters = function () {
+            const search = document.getElementById('search-user').value;
+            const status = document.getElementById('status-filter').value;
+            alert(`Filtering: User=${search}, Status=${status} (Demo)`);
+        }
+
+        window.clearFilters = function () {
+            document.getElementById('search-user').value = '';
+            document.getElementById('status-filter').value = 'all';
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
+        }
+
+        // Checklist Logic
+        const selectAll = document.getElementById('select-all-runs');
+        const checkboxes = document.querySelectorAll('.run-checkbox');
+        const toolbar = document.getElementById('bulk-actions-toolbar');
+        const countSpan = document.getElementById('selected-count');
+
+        function updateToolbar() {
+            const selected = document.querySelectorAll('.run-checkbox:checked').length;
+            countSpan.textContent = selected;
+            toolbar.style.display = selected > 0 ? 'flex' : 'none';
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                checkboxes.forEach(cb => cb.checked = selectAll.checked);
+                updateToolbar();
+            });
+        }
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                updateToolbar();
+                if (!this.checked) selectAll.checked = false;
+            });
+        });
+
+        // Bulk Actions
+        window.bulkExport = function () {
+            const ids = Array.from(document.querySelectorAll('.run-checkbox:checked')).map(cb => cb.dataset.runId);
+            alert('Exporting runs: ' + ids.join(', '));
+        }
+
+        window.bulkDelete = function () {
+            const ids = Array.from(document.querySelectorAll('.run-checkbox:checked')).map(cb => cb.dataset.runId);
+            if (confirm(`Delete ${ids.length} runs? This cannot be undone.`)) {
+                alert('Deleted runs: ' + ids.join(', '));
+            }
+        }
+    });
+</script>
 {% endblock %}

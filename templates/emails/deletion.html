@@ -1,0 +1,22 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2>Account Deleted</h2>
+<p>Hello {{ name }},</p>
+<p>This email is to confirm that your ViralLens account has been <strong>successfully deleted</strong> as requested or
+    as part of a system cleanup.</p>
+
+<div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <p style="margin: 0;"><strong>What this means:</strong></p>
+    <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+        <li>Your login credentials have been deactivated.</li>
+        <li>Your personal data has been archived or removed according to our privacy policy.</li>
+        <li>You will no longer receive system notifications from us.</li>
+    </ul>
+</div>
+
+<p>Thank you for the time you spent with ViralLens. If this was a mistake, or if you wish to sign up again in the
+    future, you are always welcome back!</p>
+
+<p>Best regards,<br>The ViralLens Team</p>
+{% endblock %}

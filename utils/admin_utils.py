@@ -8,6 +8,8 @@ from flask import redirect, url_for, flash, request
 from flask_login import current_user
 from models import db, AdminLog, UserActivity
 from datetime import datetime
+from flask import current_app, render_template
+from flask_mail import Message
 
 
 def admin_required(f):
@@ -186,3 +188,64 @@ def export_research_runs_csv():
 
 # Import timedelta for date calculations
 from datetime import timedelta
+
+
+def send_system_email(recipient_email, subject, template, user_id=None, **kwargs):
+    """
+    Send a system email and log it to the database
+    """
+    from models import EmailLog
+    
+    try:
+        # Check if mail extension is initialized
+        if 'mail' not in current_app.extensions:
+            print("Error: Flask-Mail not initialized.")
+            return False
+
+        mail = current_app.extensions['mail']
+        
+        # Render HTML content
+        html_content = render_template(f"emails/{template}.html", **kwargs)
+        
+        # Create message
+        msg = Message(
+            subject=subject,
+            recipients=[recipient_email],
+            html=html_content
+        )
+        
+        # Send email
+        mail.send(msg)
+        
+        # Log success
+        log = EmailLog(
+            recipient_email=recipient_email,
+            user_id=user_id,
+            subject=subject,
+            template=template,
+            status='sent'
+        )
+        db.session.add(log)
+        db.session.commit()
+        
+        return True
+        
+    except Exception as e:
+        print(f"Error sending email to {recipient_email}: {e}")
+        
+        # Log failure
+        try:
+            log = EmailLog(
+                recipient_email=recipient_email,
+                user_id=user_id,
+                subject=subject,
+                template=template,
+                status='failed',
+                error_message=str(e)
+            )
+            db.session.add(log)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            
+        return False

@@ -43,6 +43,13 @@ class User(UserMixin, db.Model):
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
+
+    # Approval System
+    approval_status = db.Column(db.String(20), default='approved', nullable=False) # pending, approved, rejected
+    approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    approved_at = db.Column(db.DateTime, nullable=True)
+    rejection_reason = db.Column(db.Text, nullable=True)
+    admin_notes = db.Column(db.Text, nullable=True)
     
     # Onboarding
     onboarding_completed = db.Column(db.Boolean, default=False)
@@ -53,6 +60,7 @@ class User(UserMixin, db.Model):
     keywords = db.relationship('Keyword', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     competitors = db.relationship('Competitor', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     user_config = db.relationship('UserConfig', backref='user', uselist=False, cascade='all, delete-orphan')
+    approver = db.relationship('User', remote_side='User.id', foreign_keys=[approved_by])
     
     def set_password(self, password):
         """Hash and set password with validation"""
@@ -100,6 +108,25 @@ class User(UserMixin, db.Model):
     def increment_research_count(self):
         """Increment research run counters (legacy alias)"""
         self.increment_runs()
+
+    def is_pending_approval(self):
+        """Check if user is pending approval"""
+        return self.approval_status == 'pending'
+
+    def approve(self, admin_user_id):
+        """Approve user account"""
+        self.approval_status = 'approved'
+        self.approved_by = admin_user_id
+        self.approved_at = datetime.utcnow()
+        db.session.commit()
+
+    def reject(self, admin_user_id, reason):
+        """Reject user account"""
+        self.approval_status = 'rejected'
+        self.approved_by = admin_user_id
+        self.approved_at = datetime.utcnow()
+        self.rejection_reason = reason
+        db.session.commit()
     
     def get_data_directory(self):
         """Get user-specific data directory"""
@@ -326,3 +353,23 @@ class UserActivity(db.Model):
     
     def __repr__(self):
         return f'<UserActivity {self.id}: {self.action}>'
+
+
+class EmailLog(db.Model):
+    """Log of all emails sent by the system"""
+    __tablename__ = 'email_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    recipient_email = db.Column(db.String(120), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    subject = db.Column(db.String(200), nullable=False)
+    template = db.Column(db.String(100))
+    status = db.Column(db.String(20), default='sent') # sent, failed
+    error_message = db.Column(db.Text, nullable=True)
+    sent_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('email_logs', lazy=True))
+
+    def __repr__(self):
+        return f'<EmailLog {self.id}: {self.subject} to {self.recipient_email}>'
