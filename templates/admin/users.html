@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Users - Admin Panel - VIRALENS{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <!-- Header -->
+    <div class="admin-header">
+        <h1>👥 User Management</h1>
+        <div class="admin-nav">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.users') }}" class="active">Users</a>
+            <a href="{{ url_for('admin.research_runs') }}">Research Runs</a>
+            <a href="{{ url_for('admin.analytics') }}">Analytics</a>
+            <a href="{{ url_for('admin.logs') }}">Audit Logs</a>
+            <a href="{{ url_for('admin.settings') }}">Settings</a>
+            <a href="{{ url_for('dashboard') }}" class="btn-back">← Back to App</a>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="section-card">
+        <form method="get" action="{{ url_for('admin.users') }}" class="filter-form">
+            <div class="filter-grid">
+                <div class="filter-item">
+                    <label>Search</label>
+                    <input type="text" name="search" value="{{ search }}" placeholder="Email, username, or name...">
+                </div>
+
+                <div class="filter-item">
+                    <label>Subscription Tier</label>
+                    <select name="tier">
+                        <option value="">All Tiers</option>
+                        <option value="free" {% if tier_filter=='free' %}selected{% endif %}>Free</option>
+                        <option value="pro" {% if tier_filter=='pro' %}selected{% endif %}>Pro</option>
+                        <option value="agency" {% if tier_filter=='agency' %}selected{% endif %}>Agency</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Status</label>
+                    <select name="status">
+                        <option value="">All Users</option>
+                        <option value="active" {% if status_filter=='active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if status_filter=='inactive' %}selected{% endif %}>Inactive</option>
+                        <option value="admin" {% if status_filter=='admin' %}selected{% endif %}>Admins</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <button type="submit" class="btn-primary">Apply Filters</button>
+                    <a href="{{ url_for('admin.users') }}" class="btn-secondary">Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="section-card">
+        <div class="table-header">
+            <h2>All Users ({{ pagination.total }} total)</h2>
+            <a href="{{ url_for('admin.export_users') }}" class="btn-action">📥 Export CSV</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Full Name</th>
+                        <th>Tier</th>
+                        <th>Status</th>
+                        <th>Research Runs</th>
+                        <th>Joined</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>#{{ user.id }}</td>
+                        <td>
+                            <strong>{{ user.username }}</strong>
+                            {% if user.is_admin %}
+                            <span class="badge badge-admin">Admin</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.full_name or '-' }}</td>
+                        <td>
+                            <span class="badge badge-{{ user.subscription_tier }}">
+                                {{ user.subscription_tier }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                            <span class="status-active">● Active</span>
+                            {% else %}
+                            <span class="status-inactive">● Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ user.total_research_runs or 0 }}
+                            <small>({{ user.research_runs_this_month or 0 }} this month)</small>
+                        </td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '-' }}</td>
+                        <td>{{ user.last_login.strftime('%Y-%m-%d') if user.last_login else 'Never' }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.users', page=pagination.prev_num, search=search, tier=tier_filter, status=status_filter) }}"
+                class="page-link">← Previous</a>
+            {% endif %}
+
+            {% for page in pagination.iter_pages() %}
+            {% if page %}
+            <a href="{{ url_for('admin.users', page=page, search=search, tier=tier_filter, status=status_filter) }}"
+                class="page-link {% if page == pagination.page %}active{% endif %}">
+                {{ page }}
+            </a>
+            {% else %}
+            <span class="page-link">...</span>
+            {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('admin.users', page=pagination.next_num, search=search, tier=tier_filter, status=status_filter) }}"
+                class="page-link">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .filter-form {
+        margin-bottom: 20px;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-item label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #475569;
+        font-size: 14px;
+    }
+
+    .filter-item input,
+    .filter-item select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .filter-item input:focus,
+    .filter-item select:focus {
+        outline: none;
+        border-color: #6366f1;
+    }
+
+    .btn-primary {
+        padding: 10px 20px;
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        background: #4f46e5;
+    }
+
+    .btn-secondary {
+        padding: 10px 20px;
+        background: #e2e8f0;
+        color: #475569;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin-left: 10px;
+    }
+
+    .btn-secondary:hover {
+        background: #cbd5e1;
+    }
+
+    .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .table-header h2 {
+        margin: 0;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        margin-top: 20px;
+    }
+
+    .page-link {
+        padding: 8px 12px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        color: #475569;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .page-link:hover {
+        background: #f8fafc;
+    }
+
+    .page-link.active {
+        background: #6366f1;
+        color: white;
+        border-color: #6366f1;
+    }
+
+    @media (max-width: 768px) {
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
