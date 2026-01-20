@@ -14,7 +14,7 @@ import logging
 from flask_mail import Mail
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from models import db, User, ResearchRun, TitlePerformance, Keyword, Competitor, UserConfig
+from models import db, User, ResearchRun, TitlePerformance, Keyword, Competitor, UserConfig, SystemSettings
 from main import ResearchOrchestrator
 from utils.smart_setup import SmartSetup
 from utils.research_processor import process_research_results
@@ -174,6 +174,12 @@ def signup():
             flash('Username already taken.', 'error')
             return render_template('auth/signup.html')
         
+        # Check approval setting
+        require_approval_setting = SystemSettings.query.filter_by(key='require_approval').first()
+        require_approval = require_approval_setting.value.lower() == 'true' if require_approval_setting else False
+        
+        initial_status = 'pending' if require_approval else 'approved'
+
         # Create new user
         user = User(
             email=email,
@@ -181,7 +187,7 @@ def signup():
             full_name=full_name,
             niche=niche,
             subscription_tier='free',
-            approval_status='pending', # New users pending by default
+            approval_status=initial_status,
             research_runs_this_month=0,
             total_research_runs=0
         )
@@ -200,18 +206,30 @@ def signup():
         from utils.admin_utils import send_system_email
         send_system_email(
             user.email,
-            "Welcome to ViralLens! 🚀",
+            "Welcome to ViralLens! 🚀" if initial_status == 'approved' else "ViralLens: Registration Pending Approval ⏳",
             "welcome",
             user_id=user.id,
             name=user.full_name or user.username,
             status=user.approval_status
         )
         
-        # Auto-login for web requests
-        if not request.is_json:
-            login_user(user)
-            flash(f'Welcome, {user.username}! Your account has been created.', 'success')
-            return redirect(url_for('onboarding'))
+        # Conditional Logic based on approval status
+        if initial_status == 'pending':
+            if request.is_json:
+                return jsonify({
+                    'success': True, 
+                    'message': 'Account created. Waiting for admin approval.',
+                    'require_approval': True
+                }), 201
+            
+            flash('Account created! Your registration is pending admin approval. You will be notified via email.', 'info')
+            return redirect(url_for('login'))
+        else:
+            # Auto-login if approved
+            if not request.is_json:
+                login_user(user)
+                flash(f'Welcome, {user.username}! Your account has been created.', 'success')
+                return redirect(url_for('onboarding'))
         
         # JSON response for API requests
         return jsonify({
