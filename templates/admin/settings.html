@@ -166,9 +166,9 @@
                 <div class="form-group">
                     <label>Require Approval for New Signups</label>
                     <select name="setting_require_approval">
-                        <option value="true" {% if settings.require_approval and settings.require_approval.value=='true'
-                            %}selected{% endif %}>Yes</option>
-                        <option value="false" {% if not settings.require_approval or
+                        <option value="true" {% if not settings.require_approval or
+                            settings.require_approval.value=='true' %}selected{% endif %}>Yes</option>
+                        <option value="false" {% if settings.require_approval and
                             settings.require_approval.value=='false' %}selected{% endif %}>No</option>
                     </select>
                 </div>

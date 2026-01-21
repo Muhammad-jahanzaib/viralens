@@ -179,7 +179,7 @@ def signup():
         
         # Check approval setting
         require_approval_setting = SystemSettings.query.filter_by(key='require_approval').first()
-        require_approval = require_approval_setting.value.lower() == 'true' if require_approval_setting else False
+        require_approval = require_approval_setting.value.lower() == 'true' if require_approval_setting else True
         
         initial_status = 'pending' if require_approval else 'approved'
 
