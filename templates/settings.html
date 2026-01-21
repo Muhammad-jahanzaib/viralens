@@ -720,7 +720,7 @@
             document.getElementById('perf-max-retries').value = getNested(config, 'performance_tuning.max_retry_attempts', 1);
 
             // Reddit
-            document.getElementById('perf-auto-subreddit').checked = getNested(config, 'reddit_config.auto_detect_subreddit', false);
+            document.getElementById('perf-auto-subreddit').checked = getNested(config, 'reddit_config.auto_detect_subreddit', true);
             document.getElementById('perf-default-subreddit').value = getNested(config, 'reddit_config.default_subreddit', 'cars');
 
             // Niche

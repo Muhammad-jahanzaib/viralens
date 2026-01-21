@@ -198,7 +198,7 @@ class UserConfig(db.Model):
     
     # Reddit config
     default_subreddit = db.Column(db.String(100), default='cars')
-    auto_detect_subreddit = db.Column(db.Boolean, default=False)
+    auto_detect_subreddit = db.Column(db.Boolean, default=True)
     
     # Performance tuning
     parallel_collection_timeout = db.Column(db.Integer, default=90)

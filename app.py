@@ -13,6 +13,9 @@ from werkzeug.security import generate_password_hash
 import logging
 from flask_mail import Mail
 from werkzeug.middleware.proxy_fix import ProxyFix
+import pandas as pd
+from io import BytesIO
+from flask import send_file
 
 from models import db, User, ResearchRun, TitlePerformance, Keyword, Competitor, UserConfig, SystemSettings
 from main import ResearchOrchestrator
@@ -520,6 +523,96 @@ def toggle_keyword(keyword_id):
     })
 
 
+@app.route('/api/keywords/export', methods=['GET'])
+@login_required
+def export_keywords():
+    """Export keywords to Excel"""
+    keywords = Keyword.query.filter_by(user_id=current_user.id).all()
+    data = [{
+        'Keyword': k.keyword,
+        'Category': k.category,
+        'Status': 'Active' if k.enabled else 'Inactive'
+    } for k in keywords]
+    
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Keywords')
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='research_keywords.xlsx'
+    )
+
+@app.route('/api/keywords/template', methods=['GET'])
+@login_required
+def keyword_template():
+    """Download keyword import template"""
+    df = pd.DataFrame(columns=['Keyword', 'Category'])
+    df.loc[0] = ['Example Keyword', 'primary']
+    
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Template')
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='keyword_template.xlsx'
+    )
+
+@app.route('/api/keywords/import', methods=['POST'])
+@login_required
+def import_keywords():
+    """Import keywords from Excel"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file uploaded'}), 400
+            
+        file = request.files['file']
+        if not file.filename.endswith('.xlsx'):
+             return jsonify({'success': False, 'error': 'Invalid file format. Please upload .xlsx'}), 400
+             
+        df = pd.read_excel(file)
+        
+        required = ['Keyword']
+        if not all(col in df.columns for col in required):
+            return jsonify({'success': False, 'error': 'Missing required columns: Keyword'}), 400
+            
+        added = 0
+        errors = []
+        
+        for _, row in df.iterrows():
+            kw_text = sanitize_keyword(str(row['Keyword']))
+            if not kw_text: continue
+                
+            exists = Keyword.query.filter_by(user_id=current_user.id, keyword=kw_text).first()
+            if not exists:
+                category = str(row.get('Category', 'primary')).lower()
+                if category not in ['primary', 'secondary']: category = 'primary'
+                
+                kw = Keyword(
+                    user_id=current_user.id,
+                    keyword=kw_text,
+                    category=category,
+                    enabled=True
+                )
+                db.session.add(kw)
+                added += 1
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': f'Imported {added} keywords', 'errors': errors})
+        
+    except Exception as e:
+        app.logger.error(f"Import error: {e}")
+        return jsonify({'success': False, 'error': "Failed to process file. Ensure it's a valid Excel file."}), 500
+
+
 # ============================================================================
 # COMPETITOR API ROUTES (USER-ISOLATED)
 # ============================================================================
@@ -747,6 +840,102 @@ def toggle_competitor(competitor_id):
         'success': True,
         'enabled': competitor.enabled
     })
+
+
+@app.route('/api/competitors/export', methods=['GET'])
+@login_required
+def export_competitors():
+    """Export competitors to Excel"""
+    competitors = Competitor.query.filter_by(user_id=current_user.id).all()
+    data = [{
+        'Name': c.name,
+        'Channel ID': c.channel_id,
+        'Description': c.description,
+        'Status': 'Active' if c.enabled else 'Inactive'
+    } for c in competitors]
+    
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Competitors')
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='youtube_competitors.xlsx'
+    )
+
+@app.route('/api/competitors/template', methods=['GET'])
+@login_required
+def competitor_template():
+    """Download competitor import template"""
+    df = pd.DataFrame(columns=['Name', 'Channel ID', 'Description'])
+    df.loc[0] = ['Example Channel', 'UCxxxxxxxxxxxxxxxxxxxxxx', 'Optional description']
+    
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Template')
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='competitor_template.xlsx'
+    )
+
+@app.route('/api/competitors/import', methods=['POST'])
+@login_required
+def import_competitors():
+    """Import competitors from Excel"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file uploaded'}), 400
+            
+        file = request.files['file']
+        if not file.filename.endswith('.xlsx'):
+             return jsonify({'success': False, 'error': 'Invalid file format. Please upload .xlsx'}), 400
+             
+        df = pd.read_excel(file)
+        
+        required = ['Name', 'Channel ID']
+        if not all(col in df.columns for col in required):
+            return jsonify({'success': False, 'error': 'Missing required columns: Name, Channel ID'}), 400
+            
+        added = 0
+        errors = []
+        
+        for _, row in df.iterrows():
+            channel_id = sanitize_channel_id(str(row['Channel ID']))
+            name = str(row['Name']).strip()
+            
+            if not channel_id or not name: continue
+                
+            exists = Competitor.query.filter_by(user_id=current_user.id, channel_id=channel_id).first()
+            if not exists:
+                # Basic validation
+                if not channel_id.startswith('UC') or len(channel_id) != 24:
+                    errors.append(f"Skipped invalid ID: {channel_id}")
+                    continue
+                    
+                comp = Competitor(
+                    user_id=current_user.id,
+                    name=name,
+                    channel_id=channel_id,
+                    description=str(row.get('Description', '')),
+                    enabled=True
+                )
+                db.session.add(comp)
+                added += 1
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': f'Imported {added} competitors', 'errors': errors})
+        
+    except Exception as e:
+        app.logger.error(f"Import error: {e}")
+        return jsonify({'success': False, 'error': "Failed to process file. Ensure it's a valid Excel file."}), 500
 
 
 # ============================================================================
