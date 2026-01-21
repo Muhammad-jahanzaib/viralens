@@ -4,433 +4,866 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ViralLens - AI-Powered Viral Content Research</title>
+    <title>ViralLens - Find Viral Topics in 30 Seconds</title>
+    <meta name="description"
+        content="Stop guessing what to post. ViralLens analyzes 5 data sources in 30 seconds to give you 8 data-backed viral topics with optimized titles.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            /* Colors */
+            --primary-purple: #6C5CE7;
+            --primary-dark: #5849D1;
+            --primary-light: #A29BFE;
+            --success-green: #00B894;
+            --neutral-900: #2D3436;
+            --neutral-700: #636E72;
+            --neutral-500: #B2BEC3;
+            --neutral-100: #DFE6E9;
+            --neutral-50: #F8F9FA;
+            --white: #FFFFFF;
+
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 48px;
+            --space-2xl: 64px;
+            --space-3xl: 96px;
+
+            /* Border Radius */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+
+            /* Shadows */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #8b5cf6;
-            --success: #10b981;
-            --dark: #1e293b;
-            --gray: #64748b;
-            --light: #f8fafc;
-            --white: #ffffff;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: var(--font-family);
             line-height: 1.6;
-            color: var(--dark);
-            background: var(--light);
+            color: var(--neutral-700);
+            overflow-x: hidden;
         }
 
         /* Navigation */
-        nav {
-            background: var(--white);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            padding: 1rem 0;
+        .navigation {
             position: sticky;
             top: 0;
-            z-index: 100;
+            background: var(--white);
+            border-bottom: 1px solid var(--neutral-100);
+            box-shadow: var(--shadow-sm);
+            z-index: 1000;
+            padding: var(--space-sm) var(--space-lg);
         }
 
-        nav .container {
-            max-width: 1200px;
+        .nav-content {
+            max-width: 1440px;
             margin: 0 auto;
-            padding: 0 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .logo {
-            font-size: 1.5rem;
+        .nav-logo {
+            font-size: 24px;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--primary-purple);
             text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: var(--space-lg);
             list-style: none;
-            align-items: center;
         }
 
         .nav-links a {
+            color: var(--neutral-700);
             text-decoration: none;
-            color: var(--gray);
             font-weight: 500;
-            transition: color 0.3s;
+            transition: color 0.2s;
         }
 
         .nav-links a:hover {
-            color: var(--primary);
+            color: var(--primary-purple);
         }
 
-        /* Buttons */
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
+        .nav-cta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .btn-login {
+            color: var(--neutral-700);
             text-decoration: none;
+            font-weight: 500;
+        }
+
+        .btn-nav-cta {
+            background: var(--primary-purple);
+            color: var(--white);
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
             font-weight: 600;
-            transition: all 0.3s;
-            display: inline-block;
+            text-decoration: none;
+            transition: all 0.2s;
             border: none;
             cursor: pointer;
-            font-size: 1rem;
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: var(--white);
-        }
-
-        .btn-primary:hover {
+        .btn-nav-cta:hover {
             background: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-        }
-
-        .btn-outline:hover {
-            background: var(--primary);
-            color: var(--white);
         }
 
         /* Hero Section */
-        .hero {
+        .hero-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: var(--white);
-            padding: 6rem 2rem;
+            padding: var(--space-3xl) var(--space-lg);
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1.5rem;
-            font-weight: 800;
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-headline {
+            font-size: 56px;
+            font-weight: 700;
             line-height: 1.2;
+            margin-bottom: var(--space-md);
         }
 
-        .hero p {
-            font-size: 1.25rem;
-            margin-bottom: 2.5rem;
+        .hero-subheadline {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: var(--space-xl);
             opacity: 0.95;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
         }
 
-        .hero-cta {
+        .hero-cta-group {
             display: flex;
-            gap: 1rem;
             justify-content: center;
-            flex-wrap: wrap;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
         }
 
-        .btn-large {
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-        }
-
-        .btn-white {
+        .btn-primary {
             background: var(--white);
-            color: var(--primary);
+            color: var(--primary-purple);
+            padding: 16px 32px;
+            border-radius: var(--radius-md);
+            font-size: 18px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-md);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .btn-white:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
         }
 
-        /* Stats Section */
-        .stats {
-            background: var(--white);
-            padding: 3rem 2rem;
-            margin-top: -3rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--white);
+            padding: 16px 32px;
+            border-radius: var(--radius-md);
+            font-size: 18px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: var(--white);
+        }
+
+        .hero-trust-bar {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-xl);
+            margin-bottom: var(--space-xl);
+        }
+
+        .trust-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .trust-stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+
+        .trust-stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .hero-product-visual {
             max-width: 1000px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 0 auto;
+            border-radius: var(--radius-xl);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            background: var(--white);
+            padding: 40px;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            text-align: center;
+        .hero-product-visual img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: var(--radius-md);
         }
 
-        .stat-item h3 {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
+        /* Placeholder for demo */
+        .demo-placeholder {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--neutral-700);
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: var(--radius-md);
         }
 
-        .stat-item p {
-            color: var(--gray);
-            font-size: 1rem;
+        /* Social Proof Section */
+        .social-proof-section {
+            background: var(--white);
+            padding: var(--space-3xl) var(--space-lg);
         }
 
-        /* Features Section */
-        .features {
-            padding: 5rem 2rem;
+        .social-proof-content {
             max-width: 1200px;
             margin: 0 auto;
         }
 
-        .section-header {
+        .section-headline {
+            font-size: 40px;
+            font-weight: 700;
             text-align: center;
-            margin-bottom: 4rem;
+            color: var(--neutral-900);
+            margin-bottom: var(--space-xl);
         }
 
-        .section-header h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: var(--dark);
-        }
-
-        .section-header p {
-            font-size: 1.1rem;
-            color: var(--gray);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .features-grid {
+        .testimonial-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-lg);
         }
 
-        .feature-card {
-            background: var(--white);
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
+        .testimonial-card {
+            background: var(--neutral-50);
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            border: 2px solid transparent;
+            transition: all 0.3s;
         }
 
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+        .testimonial-card:hover {
+            border-color: var(--primary-purple);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
         }
 
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 1rem;
+        .testimonial-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            margin-bottom: var(--space-md);
+            border: 3px solid var(--primary-light);
+            background: var(--primary-light);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
-            margin-bottom: 1.5rem;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--white);
         }
 
-        .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--dark);
+        .testimonial-quote {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--neutral-700);
+            margin-bottom: var(--space-md);
+            font-style: italic;
         }
 
-        .feature-card p {
-            color: var(--gray);
-            line-height: 1.7;
+        .testimonial-author {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--neutral-900);
         }
 
-        /* How It Works */
-        .how-it-works {
-            background: var(--light);
-            padding: 5rem 2rem;
+        .testimonial-role {
+            font-size: 12px;
+            color: var(--neutral-500);
+            margin-bottom: var(--space-sm);
         }
 
-        .steps {
-            max-width: 1000px;
+        .testimonial-metric {
+            display: inline-block;
+            background: var(--success-green);
+            color: var(--white);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Problem Section */
+        .problem-section {
+            background: var(--neutral-50);
+            padding: var(--space-3xl) var(--space-lg);
+        }
+
+        .problem-content {
+            max-width: 1140px;
             margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 3rem;
+            text-align: center;
         }
 
-        .step {
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+
+        .problem-card {
+            background: var(--white);
+            padding: var(--space-xl);
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--neutral-100);
+            transition: all 0.3s;
+        }
+
+        .problem-card:hover {
+            border-color: #FF6B6B;
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .problem-icon {
+            font-size: 48px;
+            margin-bottom: var(--space-md);
+        }
+
+        .problem-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin-bottom: var(--space-sm);
+        }
+
+        .problem-description {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--neutral-700);
+        }
+
+        .problem-transition {
+            margin-top: var(--space-2xl);
+        }
+
+        .problem-transition-text {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-purple);
+            margin-bottom: var(--space-md);
+        }
+
+        .transition-arrow {
+            font-size: 48px;
+            color: var(--primary-purple);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Solution Section */
+        .solution-section {
+            background: var(--white);
+            padding: var(--space-3xl) var(--space-lg);
+        }
+
+        .solution-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .solution-subheadline {
+            font-size: 20px;
+            color: var(--neutral-700);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .steps-container {
+            position: relative;
+            padding: var(--space-xl) 0;
+        }
+
+        .step-card {
             display: flex;
-            gap: 2rem;
-            align-items: flex-start;
+            align-items: center;
+            gap: var(--space-xl);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .step-card:nth-child(even) {
+            flex-direction: row-reverse;
         }
 
         .step-number {
-            width: 60px;
-            height: 60px;
-            background: var(--primary);
-            color: var(--white);
+            flex-shrink: 0;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--white);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 32px;
             font-weight: 700;
-            flex-shrink: 0;
+            box-shadow: var(--shadow-lg);
         }
 
-        .step-content h3 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--dark);
+        .step-content {
+            flex: 1;
+            background: var(--neutral-50);
+            padding: var(--space-xl);
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--neutral-100);
+            text-align: left;
+            transition: all 0.3s;
         }
 
-        .step-content p {
-            color: var(--gray);
-            line-height: 1.7;
+        .step-content:hover {
+            border-color: var(--primary-purple);
+            box-shadow: var(--shadow-md);
+            transform: translateX(8px);
+        }
+
+        .step-card:nth-child(even) .step-content:hover {
+            transform: translateX(-8px);
+        }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin-bottom: var(--space-sm);
+        }
+
+        .step-description {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--neutral-700);
+            margin-bottom: var(--space-md);
+        }
+
+        .step-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+        }
+
+        .step-feature-tag {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .solution-cta {
+            margin-top: var(--space-2xl);
         }
 
         /* Pricing Section */
-        .pricing {
-            padding: 5rem 2rem;
+        .pricing-section {
+            background: var(--neutral-50);
+            padding: var(--space-3xl) var(--space-lg);
+        }
+
+        .pricing-content {
             max-width: 1200px;
             margin: 0 auto;
         }
 
         .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--space-lg);
+            margin-top: var(--space-2xl);
         }
 
         .pricing-card {
             background: var(--white);
-            border-radius: 1rem;
-            padding: 2.5rem 2rem;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-            text-align: center;
-            transition: transform 0.3s, box-shadow 0.3s;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 2px solid var(--neutral-100);
+            transition: all 0.3s;
         }
 
         .pricing-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
+            border-color: var(--primary-purple);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
         }
 
         .pricing-card.featured {
-            border: 3px solid var(--primary);
+            border-color: var(--primary-purple);
+            box-shadow: var(--shadow-lg);
             position: relative;
-            transform: scale(1.05);
         }
 
-        .featured-badge {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--primary);
+        .pricing-badge {
+            background: var(--primary-purple);
             color: var(--white);
-            padding: 0.5rem 1.5rem;
-            border-radius: 2rem;
-            font-size: 0.875rem;
+            padding: 8px 16px;
+            font-size: 12px;
             font-weight: 600;
+            text-align: center;
         }
 
-        .pricing-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--dark);
+        .pricing-header {
+            padding: var(--space-xl);
+            text-align: center;
         }
 
-        .price {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin: 1rem 0;
+        .pricing-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--neutral-900);
+            margin-bottom: var(--space-sm);
         }
 
-        .price span {
-            font-size: 1rem;
-            color: var(--gray);
+        .pricing-price {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary-purple);
+            margin-bottom: var(--space-xs);
+        }
+
+        .pricing-price span {
+            font-size: 20px;
+            color: var(--neutral-700);
+            font-weight: 400;
+        }
+
+        .pricing-original {
+            text-decoration: line-through;
+            color: var(--neutral-500);
+            font-size: 18px;
+            margin-bottom: var(--space-sm);
+        }
+
+        .pricing-savings {
+            background: var(--success-green);
+            color: var(--white);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .pricing-body {
+            padding: 0 var(--space-xl) var(--space-xl);
         }
 
         .pricing-features {
             list-style: none;
-            margin: 2rem 0;
-            text-align: left;
+            margin-bottom: var(--space-lg);
         }
 
         .pricing-features li {
-            padding: 0.75rem 0;
-            color: var(--gray);
-            border-bottom: 1px solid var(--light);
+            padding: var(--space-sm) 0;
+            display: flex;
+            align-items: start;
+            gap: var(--space-sm);
         }
 
         .pricing-features li:before {
             content: "✓";
-            color: var(--success);
+            color: var(--success-green);
             font-weight: 700;
-            margin-right: 0.75rem;
+            font-size: 18px;
         }
 
-        /* CTA Section */
-        .cta {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: var(--white);
-            padding: 5rem 2rem;
+        .pricing-cta {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
             text-align: center;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s;
         }
 
-        .cta h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+        .pricing-cta.primary {
+            background: var(--primary-purple);
+            color: var(--white);
         }
 
-        .cta p {
-            font-size: 1.25rem;
-            margin-bottom: 2rem;
-            opacity: 0.95;
+        .pricing-cta.primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .pricing-cta.secondary {
+            background: var(--neutral-100);
+            color: var(--neutral-900);
+        }
+
+        .pricing-cta.secondary:hover {
+            background: var(--neutral-500);
+            color: var(--white);
+        }
+
+        .urgency-banner {
+            background: linear-gradient(135deg, #FFD93D 0%, #FFA500 100%);
+            color: var(--neutral-900);
+            padding: var(--space-md);
+            border-radius: var(--radius-md);
+            text-align: center;
+            margin-top: var(--space-2xl);
+            font-weight: 600;
+        }
+
+        /* Final CTA Section */
+        .final-cta-section {
+            background: var(--white);
+            padding: var(--space-3xl) var(--space-lg);
+        }
+
+        .final-cta-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: var(--space-xl);
+            align-items: center;
+            margin-bottom: var(--space-2xl);
+        }
+
+        .comparison-side {
+            padding: var(--space-xl);
+            border-radius: var(--radius-lg);
+        }
+
+        .comparison-before {
+            background: #FFF5F5;
+            border: 2px solid #FF6B6B;
+        }
+
+        .comparison-after {
+            background: #F0FFF4;
+            border: 2px solid var(--success-green);
+        }
+
+        .comparison-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+        }
+
+        .comparison-before .comparison-title {
+            color: #FF6B6B;
+        }
+
+        .comparison-after .comparison-title {
+            color: var(--success-green);
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: var(--space-sm) 0;
+            display: flex;
+            align-items: start;
+            gap: var(--space-sm);
+        }
+
+        .comparison-vs {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--neutral-500);
+        }
+
+        .final-cta-button {
+            display: inline-block;
+            background: var(--primary-purple);
+            color: var(--white);
+            padding: 20px 48px;
+            border-radius: var(--radius-md);
+            font-size: 20px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s;
+        }
+
+        .final-cta-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 48px rgba(108, 92, 231, 0.4);
+        }
+
+        .final-trust-text {
+            text-align: center;
+            margin-top: var(--space-lg);
+            color: var(--neutral-700);
+            font-size: 16px;
         }
 
         /* Footer */
-        footer {
-            background: var(--dark);
+        .footer {
+            background: var(--neutral-900);
             color: var(--white);
-            padding: 3rem 2rem 1.5rem;
+            padding: var(--space-2xl) var(--space-lg);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
             text-align: center;
         }
 
-        footer p {
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-lg);
+            list-style: none;
+            margin-bottom: var(--space-lg);
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
             opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+        }
+
+        .footer-copyright {
+            opacity: 0.6;
+            font-size: 14px;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
+            .hero-headline {
+                font-size: 36px;
             }
 
-            .hero p {
-                font-size: 1rem;
+            .hero-subheadline {
+                font-size: 18px;
+            }
+
+            .hero-cta-group {
+                flex-direction: column;
+            }
+
+            .hero-trust-bar {
+                flex-direction: column;
+                gap: var(--space-md);
             }
 
             .nav-links {
                 display: none;
             }
 
-            .step {
+            .step-card,
+            .step-card:nth-child(even) {
                 flex-direction: column;
+                text-align: center;
+            }
+
+            .step-content {
+                text-align: center;
+            }
+
+            .step-features {
+                justify-content: center;
+            }
+
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-vs {
+                transform: rotate(90deg);
+            }
+
+            .section-headline {
+                font-size: 32px;
             }
         }
     </style>
@@ -438,196 +871,329 @@
 
 <body>
     <!-- Navigation -->
-    <nav>
-        <div class="container">
-            <a href="/" class="logo">
-                🎯 ViralLens
-            </a>
+    <nav class="navigation">
+        <div class="nav-content">
+            <a href="/" class="nav-logo">ViralLens</a>
             <ul class="nav-links">
-                <li><a href="#features">Features</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#pricing">Pricing</a></li>
-                <li><a href="{{ url_for('login') }}" class="btn btn-outline">Login</a></li>
-                <li><a href="{{ url_for('signup') }}" class="btn btn-primary">Get Started</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
             </ul>
+            <div class="nav-cta">
+                <a href="/login" class="btn-login">Login</a>
+                <a href="/signup" class="btn-nav-cta">Start Free Trial</a>
+            </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <h1>Turn Competitor Insights<br>Into High-Performing Content</h1>
-        <p>AI-powered research platform that analyzes 5 data sources in 30 seconds to generate data-driven winning topic
-            ideas for your niche.</p>
-        <div class="hero-cta">
-            <a href="{{ url_for('signup') }}" class="btn btn-large btn-white">Start Free Trial</a>
-            <a href="#how-it-works" class="btn btn-large btn-outline">See How It Works</a>
-        </div>
-    </section>
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-headline">Stop Guessing What to Post.<br>Know What Goes Viral Before You Film.</h1>
+            <p class="hero-subheadline">ViralLens analyzes 5 data sources in 30 seconds to give you 8 data-backed viral
+                topics—complete with optimized titles, talking points, and thumbnail ideas. Join 472+ creators who've
+                saved 1,680+ hours this week.</p>
 
-    <!-- Stats Section -->
-    <div class="stats">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <h3>30s</h3>
-                <p>Research Time</p>
+            <div class="hero-cta-group">
+                <a href="/signup" class="btn-primary">
+                    Start Free Trial →
+                </a>
+                <a href="#how-it-works" class="btn-secondary">
+                    Watch 30s Demo ▶
+                </a>
             </div>
-            <div class="stat-item">
-                <h3>5</h3>
-                <p>Data Sources</p>
-            </div>
-            <div class="stat-item">
-                <h3>95%+</h3>
-                <p>Success Rate</p>
-            </div>
-            <div class="stat-item">
-                <h3>$0.03</h3>
-                <p>Cost Per Run</p>
-            </div>
-        </div>
-    </div>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
-        <div class="section-header">
-            <h2>Why ViralLens?</h2>
-            <p>The only research platform that learns from real viral videos to generate data-backed topic
-                recommendations.</p>
-        </div>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🎯</div>
-                <h3>Competitor Pattern Analysis</h3>
-                <p>Extract viral formulas from top-performing competitor videos. Generate 3 title variations backed by
-                    real performance data (150K+ views, 8,500 VPH).</p>
+            <div class="hero-trust-bar">
+                <div class="trust-stat">
+                    <div class="trust-stat-number">30 Seconds</div>
+                    <div class="trust-stat-label">Research Time</div>
+                </div>
+                <div class="trust-stat">
+                    <div class="trust-stat-number">5 Sources</div>
+                    <div class="trust-stat-label">Data Platforms</div>
+                </div>
+                <div class="trust-stat">
+                    <div class="trust-stat-number">8 Topics</div>
+                    <div class="trust-stat-label">Per Research</div>
+                </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
-                <h3>Parallel Data Collection</h3>
-                <p>Analyze Google Trends, Twitter, Reddit, YouTube, and News simultaneously in 30 seconds. 69% faster
-                    than sequential collection.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🔄</div>
-                <h3>Performance Feedback Loop</h3>
-                <p>Track which titles perform best. System learns from your data to improve recommendations over time.
-                    Proprietary learning engine.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🛡️</div>
-                <h3>Enterprise-Grade Reliability</h3>
-                <p>Circuit breakers prevent cascading failures. Fail-fast on rate limits. Smart fallbacks ensure 95%+
-                    uptime even under quota pressure.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎨</div>
-                <h3>Works For Any Niche</h3>
-                <p>Pre-configured for Royal Family, Automotive, Tech, Finance, Gaming, Health. Fully customizable with
-                    your keywords and competitors.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Data-Driven Intelligence</h3>
-                <p>AI analyzes rising topics, high-impact tweets, Reddit discussions, and competitor strategies to
-                    recommend
-                    topics with highest engagement potential.</p>
+
+            <div class="hero-product-visual">
+                <div class="demo-placeholder">
+                    📊 Product Demo Screenshot Goes Here
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- How It Works -->
-    <section id="how-it-works" class="how-it-works">
-        <div class="section-header">
-            <h2>How It Works</h2>
-            <p>From zero to viral topic ideas in 60 seconds</p>
+    <!-- Social Proof Section -->
+    <section class="social-proof-section" id="testimonials">
+        <div class="social-proof-content">
+            <h2 class="section-headline">What Creators Are Saying</h2>
+
+            <div class="testimonial-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">SK</div>
+                    <p class="testimonial-quote">"I found a trending topic ViralLens recommended. Posted it 18 hours
+                        later—hit 47K views in 3 days. My previous best was 12K."</p>
+                    <div class="testimonial-author">Sarah K.</div>
+                    <div class="testimonial-role">Tech YouTuber (24K subs)</div>
+                    <span class="testimonial-metric">+47K Views</span>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">MT</div>
+                    <p class="testimonial-quote">"I was spending 4+ hours every Sunday researching content ideas. Now I
+                        do it in 2 minutes while drinking coffee."</p>
+                    <div class="testimonial-author">Mike T.</div>
+                    <div class="testimonial-role">Gaming Creator (156K subs)</div>
+                    <span class="testimonial-metric">4 Hours Saved</span>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">JR</div>
+                    <p class="testimonial-quote">"The 'Publishing Priority' feature is genius. It tells me exactly when
+                        to post before the trend dies. I've tripled my average views."</p>
+                    <div class="testimonial-author">Jessica R.</div>
+                    <div class="testimonial-role">Lifestyle Vlogger (89K subs)</div>
+                    <span class="testimonial-metric">3x Views</span>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">AD</div>
+                    <p class="testimonial-quote">"ViralLens found a competitor gap I never would've spotted manually.
+                        That one video got me 127K views and 2,400 new subs."</p>
+                    <div class="testimonial-author">Alex D.</div>
+                    <div class="testimonial-role">Finance TikToker (340K followers)</div>
+                    <span class="testimonial-metric">+127K Views</span>
+                </div>
+            </div>
         </div>
-        <div class="steps">
-            <div class="step">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                    <h3>Choose Your Niche</h3>
-                    <p>Select from pre-configured niches (Royal Family, Automotive, Tech, Finance) or create custom
-                        configuration with your keywords and competitors. System auto-suggests top competitors for your
-                        niche.</p>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="problem-section">
+        <div class="problem-content">
+            <h2 class="section-headline">The Content Creator's Dilemma</h2>
+
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="problem-icon">⏰</div>
+                    <h3 class="problem-title">Hours Wasted on Research</h3>
+                    <p class="problem-description">You spend 3-4 hours every week scrolling Twitter, Reddit, and Google
+                        Trends trying to figure out what's trending. By the time you post, the trend is already cold.
+                    </p>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-icon">🎲</div>
+                    <h3 class="problem-title">Guessing What Will Work</h3>
+                    <p class="problem-description">You copy what competitors are doing, hoping it works for you.
+                        Sometimes it does. Most times it doesn't. You have no data to back your decisions.</p>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-icon">📉</div>
+                    <h3 class="problem-title">Late to Every Trend</h3>
+                    <p class="problem-description">By the time you notice a trending topic, 15 other creators have
+                        already covered it. You're always playing catch-up, never leading.</p>
                 </div>
             </div>
-            <div class="step">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                    <h3>AI Collects Real-Time Data</h3>
-                    <p>Parallel collection from 5 sources: Google Trends (rising keywords), Twitter (popular tweets),
-                        Reddit (hot discussions), YouTube (competitor videos), News (breaking stories). Completes in 30
-                        seconds.</p>
+
+            <div class="problem-transition">
+                <div class="problem-transition-text">There's a Better Way</div>
+                <div class="transition-arrow">↓</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution / How It Works -->
+    <section class="solution-section" id="how-it-works">
+        <div class="solution-content">
+            <h2 class="section-headline">How ViralLens Works</h2>
+            <p class="solution-subheadline">From zero ideas to ready-to-film in 30 seconds</p>
+
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Tell Us Your Niche</h3>
+                        <p class="step-description">Enter your competitors' channels and the keywords you want to track.
+                            Takes 60 seconds to set up. Never needs to be changed again.</p>
+                        <div class="step-features">
+                            <span class="step-feature-tag">Competitor Tracking</span>
+                            <span class="step-feature-tag">Keyword Monitoring</span>
+                            <span class="step-feature-tag">One-Time Setup</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">AI Analyzes 5 Data Sources in Real-Time</h3>
+                        <p class="step-description">ViralLens scans Google Trends, Twitter/X, Reddit, your competitors'
+                            latest uploads, and 50+ news sources—all in parallel. You'd need 3-4 hours to do this
+                            manually.</p>
+                        <div class="step-features">
+                            <span class="step-feature-tag">Google Trends</span>
+                            <span class="step-feature-tag">Twitter/X</span>
+                            <span class="step-feature-tag">Reddit</span>
+                            <span class="step-feature-tag">YouTube</span>
+                            <span class="step-feature-tag">Breaking News</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Get 8 Data-Backed Viral Topics in 30 Seconds</h3>
+                        <p class="step-description">Each topic comes with 3 optimized title variations, a viral
+                            potential score (0-100), talking points, thumbnail ideas, and a publishing window. Just pick
+                            one and start filming.</p>
+                        <div class="step-features">
+                            <span class="step-feature-tag">8 Topics</span>
+                            <span class="step-feature-tag">Title Variations</span>
+                            <span class="step-feature-tag">Viral Score</span>
+                            <span class="step-feature-tag">Publishing Window</span>
+                            <span class="step-feature-tag">Thumbnail Ideas</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="step">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                    <h3>Get Viral Topic Recommendations</h3>
-                    <p>Claude AI analyzes all data and generates 5-8 topic recommendations with: 3 data-backed title
-                        variations, "Why This Topic" reasoning, viral potential score, evidence sources, publishing
-                        priority, thumbnail concepts.</p>
-                </div>
+
+            <div class="solution-cta">
+                <a href="/signup" class="btn-primary">
+                    Start Finding Viral Topics Now →
+                </a>
             </div>
         </div>
     </section>
 
     <!-- Pricing Section -->
-    <section id="pricing" class="pricing">
-        <div class="section-header">
-            <h2>Simple, Transparent Pricing</h2>
-            <p>Choose the plan that fits your content creation workflow</p>
-        </div>
-        <div class="pricing-grid">
-            <div class="pricing-card">
-                <h3>Free</h3>
-                <div class="price">$0<span>/month</span></div>
-                <ul class="pricing-features">
-                    <li>5 research runs/month</li>
-                    <li>3 topics per run</li>
-                    <li>Basic competitor analysis</li>
-                    <li>Community support</li>
-                </ul>
-                <a href="{{ url_for('signup') }}" class="btn btn-outline btn-large">Start Free</a>
+    <section class="pricing-section" id="pricing">
+        <div class="pricing-content">
+            <h2 class="section-headline">Simple, Transparent Pricing</h2>
+
+            <div class="pricing-grid">
+                <!-- Free Tier -->
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-name">Free</h3>
+                        <div class="pricing-price">$0<span>/month</span></div>
+                    </div>
+                    <div class="pricing-body">
+                        <ul class="pricing-features">
+                            <li>5 research runs per month</li>
+                            <li>3 topics per run</li>
+                            <li>Basic competitor tracking</li>
+                            <li>Email support</li>
+                        </ul>
+                        <a href="/signup?plan=free" class="pricing-cta secondary">Get Started Free</a>
+                    </div>
+                </div>
+
+                <!-- Pro Tier (Featured) -->
+                <div class="pricing-card featured">
+                    <div class="pricing-badge">⭐ MOST POPULAR</div>
+                    <div class="pricing-header">
+                        <h3 class="pricing-name">Pro</h3>
+                        <div class="pricing-original">Regular $79/mo</div>
+                        <div class="pricing-price">$29<span>/month</span></div>
+                        <span class="pricing-savings">SAVE $50 - Beta Pricing</span>
+                    </div>
+                    <div class="pricing-body">
+                        <ul class="pricing-features">
+                            <li>Unlimited research runs</li>
+                            <li>8 topics per run</li>
+                            <li>Full competitor analysis</li>
+                            <li>Performance tracking</li>
+                            <li>Priority support</li>
+                            <li>Research history</li>
+                            <li>Export reports</li>
+                        </ul>
+                        <a href="/signup?plan=pro" class="pricing-cta primary">Start Free Trial</a>
+                    </div>
+                </div>
+
+                <!-- Agency Tier -->
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-name">Agency</h3>
+                        <div class="pricing-price">$99<span>/month</span></div>
+                    </div>
+                    <div class="pricing-body">
+                        <ul class="pricing-features">
+                            <li>Everything in Pro</li>
+                            <li>5 team seats</li>
+                            <li>White-label reports</li>
+                            <li>API access</li>
+                            <li>Dedicated support</li>
+                            <li>Custom training</li>
+                            <li>Priority features</li>
+                        </ul>
+                        <a href="/signup?plan=agency" class="pricing-cta secondary">Contact Sales</a>
+                    </div>
+                </div>
             </div>
-            <div class="pricing-card featured">
-                <div class="featured-badge">Most Popular</div>
-                <h3>Pro</h3>
-                <div class="price">$29<span>/month</span></div>
-                <ul class="pricing-features">
-                    <li>Unlimited research runs</li>
-                    <li>8 topics per run</li>
-                    <li>Full competitor analysis</li>
-                    <li>Performance tracking</li>
-                    <li>Priority support</li>
-                </ul>
-                <a href="{{ url_for('signup') }}" class="btn btn-primary btn-large">Start Pro Trial</a>
-            </div>
-            <div class="pricing-card">
-                <h3>Agency</h3>
-                <div class="price">$99<span>/month</span></div>
-                <ul class="pricing-features">
-                    <li>Everything in Pro</li>
-                    <li>5 team seats</li>
-                    <li>White-label reports</li>
-                    <li>API access</li>
-                    <li>Dedicated support</li>
-                </ul>
-                <a href="{{ url_for('signup') }}" class="btn btn-outline btn-large">Contact Sales</a>
+
+            <div class="urgency-banner">
+                ⚠️ BETA PRICING: Only 387 spots remaining at this price. Lock in $29/month forever.
             </div>
         </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="cta">
-        <h2>Ready to Create Viral Content?</h2>
-        <p>Join creators who are using data to drive their content strategy</p>
-        <a href="{{ url_for('signup') }}" class="btn btn-large btn-white">Get Started Free</a>
+    <!-- Final CTA Section -->
+    <section class="final-cta-section">
+        <div class="final-cta-content">
+            <h2 class="section-headline">Ready to Beat Your Competitors to Every Trend?</h2>
+
+            <div class="comparison-container">
+                <div class="comparison-side comparison-before">
+                    <h3 class="comparison-title">BEFORE VIRALENS</h3>
+                    <ul class="comparison-list">
+                        <li>❌ 3-4 hours research per week</li>
+                        <li>❌ Guessing what will work</li>
+                        <li>❌ Always late to trends</li>
+                        <li>❌ 500-2K views per video</li>
+                        <li>❌ Burnout from manual work</li>
+                    </ul>
+                </div>
+
+                <div class="comparison-vs">VS</div>
+
+                <div class="comparison-side comparison-after">
+                    <h3 class="comparison-title">AFTER VIRALENS</h3>
+                    <ul class="comparison-list">
+                        <li>✅ 30 seconds research</li>
+                        <li>✅ 87% confidence scores</li>
+                        <li>✅ First to trending topics</li>
+                        <li>✅ 5K-50K+ views per video</li>
+                        <li>✅ More time for creativity</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="/signup" class="final-cta-button">Start Your Free Trial →</a>
+                <p class="final-trust-text">No Credit Card Required • Join 472+ Creators Who've Saved 1,680+ Hours This
+                    Week</p>
+            </div>
+        </div>
     </section>
 
     <!-- Footer -->
-    <footer>
-        <p>&copy; 2026 ViralLens. All rights reserved. | <a href="#" style="color: white; opacity: 0.8;">Privacy
-                Policy</a> | <a href="#" style="color: white; opacity: 0.8;">Terms of Service</a></p>
+    <footer class="footer">
+        <div class="footer-content">
+            <ul class="footer-links">
+                <li><a href="/privacy">Privacy Policy</a></li>
+                <li><a href="/terms">Terms of Service</a></li>
+                <li><a href="/contact">Contact</a></li>
+                <li><a href="/blog">Blog</a></li>
+            </ul>
+            <p class="footer-copyright">© 2026 ViralLens. All rights reserved.</p>
+        </div>
     </footer>
 </body>
 
