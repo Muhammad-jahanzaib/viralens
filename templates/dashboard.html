@@ -511,11 +511,11 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">
-                    📊 Research Runs This Month
+                    📊 Research Runs Today
                 </div>
-                <div class="stat-value">{{ current_user.research_runs_this_month }}</div>
+                <div class="stat-value">{{ current_user.get_daily_usage() }}</div>
                 <div class="stat-badge badge-{{ 'success' if current_user.can_run_research() else 'danger' }}">
-                    {{ current_user.get_remaining_runs() }} remaining
+                    {{ current_user.get_remaining_runs() }} remaining today
                 </div>
             </div>
 

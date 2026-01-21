@@ -301,11 +301,13 @@
         <span id="selected-count">0</span> users selected
     </div>
     <div class="bulk-actions">
-        <!-- These are placeholders for now, functionality would need backend routes -->
+        <!-- Real implementation of bulk actions -->
         <button class="btn-sm btn-success" onclick="bulkApprove()">✓ Approve</button>
         <button class="btn-sm btn-danger" onclick="bulkReject()">✗ Reject</button>
         <button class="btn-sm btn-warning" onclick="bulkSuspend()">⏸ Suspend</button>
         <button class="btn-sm btn-primary" onclick="bulkActivate()">▶ Activate</button>
+        <button class="btn-sm btn-danger" onclick="bulkDelete()"
+            style="background: #ef4444; border: 1px solid white;">🗑 Delete</button>
         <button class="btn-sm btn-secondary" onclick="bulkExport()">📥 Export</button>
     </div>
 </div>
@@ -318,6 +320,7 @@
         const userCheckboxes = document.querySelectorAll('.user-checkbox');
         const bulkToolbar = document.getElementById('bulk-actions-toolbar');
         const selectedCountSpan = document.getElementById('selected-count');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         function updateToolbar() {
             const selected = document.querySelectorAll('.user-checkbox:checked').length;
@@ -327,6 +330,42 @@
                 bulkToolbar.style.display = 'flex';
             } else {
                 bulkToolbar.style.display = 'none';
+            }
+        }
+
+        function getSelectedIds() {
+            return Array.from(document.querySelectorAll('.user-checkbox:checked'))
+                .map(cb => cb.dataset.userId);
+        }
+
+        async function performBulkAction(url, actionName, extraData = {}) {
+            const ids = getSelectedIds();
+            if (ids.length === 0) return;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        user_ids: ids,
+                        ...extraData
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show success toast or alert? Reloading is safest for state sync
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Bulk action error:', error);
+                alert('Failed to perform action');
             }
         }
 
@@ -344,7 +383,6 @@
         userCheckboxes.forEach(cb => {
             cb.addEventListener('change', function () {
                 updateToolbar();
-                // Update Select All state
                 if (!this.checked) {
                     selectAll.checked = false;
                 } else if (document.querySelectorAll('.user-checkbox:checked').length === userCheckboxes.length) {
@@ -353,28 +391,63 @@
             });
         });
 
-        // Bulk Action Placeholders
+        // Bulk Action Implementations
         window.bulkApprove = function () {
-            alert('Bulk Approve feature coming soon! Selected IDs: ' + getSelectedIds().join(', '));
+            if (confirm(`Approve ${getSelectedIds().length} users?`)) {
+                performBulkAction('/admin/api/users/bulk-approve', 'approve');
+            }
         }
 
         window.bulkReject = function () {
-            alert('Bulk Reject feature coming soon! Selected IDs: ' + getSelectedIds().join(', '));
+            const reason = prompt("Enter rejection reason:", "Bulk action");
+            if (reason) {
+                performBulkAction('/admin/api/users/bulk-reject', 'reject', { reason: reason });
+            }
         }
 
         window.bulkSuspend = function () {
-            if (confirm('Suspend ' + getSelectedIds().length + ' users?')) {
-                alert('Suspended! (Demo)');
+            const reason = prompt("Enter suspension reason:", "Policy violation");
+            if (reason) {
+                performBulkAction('/admin/api/users/bulk-suspend', 'suspend', { reason: reason });
+            }
+        }
+
+        window.bulkActivate = function () {
+            if (confirm(`Activate ${getSelectedIds().length} users?`)) {
+                performBulkAction('/admin/api/users/bulk-activate', 'activate');
+            }
+        }
+        
+        window.bulkDelete = function () {
+            if (confirm(`⚠️ PERMANENTLY DELETE ${getSelectedIds().length} users?\nThis cannot be undone!`)) {
+                performBulkAction('/admin/api/users/bulk-delete', 'delete');
             }
         }
 
         window.bulkExport = function () {
-            alert('Exporting ' + getSelectedIds().length + ' users...');
-        }
-
-        function getSelectedIds() {
-            return Array.from(document.querySelectorAll('.user-checkbox:checked'))
-                .map(cb => cb.dataset.userId);
+            const ids = getSelectedIds();
+            if (ids.length === 0) return;
+            
+            // Create a hidden form to submit for download
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/admin/api/users/bulk-export';
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+            
+            const idsInput = document.createElement('input');
+            idsInput.type = 'hidden';
+            idsInput.name = 'user_ids';
+            idsInput.value = JSON.stringify(ids);
+            form.appendChild(idsInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
         }
     });
 </script>
