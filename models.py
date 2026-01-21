@@ -99,8 +99,7 @@ class User(UserMixin, db.Model):
     
     def get_daily_usage(self):
         """Get number of research runs today"""
-        # Late import to handle circular reference in same file
-        from models import ResearchRun
+        # No import needed as ResearchRun is in same module global scope
         
         today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
         return self.research_runs.filter(ResearchRun.created_at >= today_start).count()
