@@ -79,25 +79,53 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
     
     def can_run_research(self):
-        """Check if user can run research based on subscription tier"""
+        """Check if user can run research based on subscription tier and daily limits"""
+        # 1. Total Monthly Limit
         limits = {
-            'free': 300, # Increased to allow ~10/day
+            'free': 300,
             'pro': float('inf'),
             'agency': float('inf')
         }
-        return self.research_runs_this_month < limits.get(self.subscription_tier, 300)
+        monthly_limit = limits.get(self.subscription_tier, 300)
+        if self.research_runs_this_month >= monthly_limit:
+            return False
+            
+        # 2. Daily Limit (10 per day)
+        daily_limit = 10
+        if self.get_daily_usage() >= daily_limit:
+            return False
+            
+        return True
+    
+    def get_daily_usage(self):
+        """Get number of research runs today"""
+        # Late import to handle circular reference in same file
+        from models import ResearchRun
+        
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        return self.research_runs.filter(ResearchRun.created_at >= today_start).count()
     
     def get_remaining_runs(self):
-        """Get remaining research runs for this month"""
+        """Get remaining research runs (minimum of monthly or daily limit)"""
+        # Monthly remaining
         limits = {
-            'free': 300, # Increased to allow ~10/day
+            'free': 300,
             'pro': float('inf'),
             'agency': float('inf')
         }
-        limit = limits.get(self.subscription_tier, 300)
-        if limit == float('inf'):
-            return 'Unlimited'
-        return max(0, limit - self.research_runs_this_month)
+        monthly_limit = limits.get(self.subscription_tier, 300)
+        monthly_remaining = float('inf') if monthly_limit == float('inf') else max(0, monthly_limit - self.research_runs_this_month)
+        
+        # Daily remaining
+        daily_limit = 10
+        daily_usage = self.get_daily_usage()
+        daily_remaining = max(0, daily_limit - daily_usage)
+        
+        # Return the bottleneck
+        if monthly_remaining == float('inf'):
+            return daily_remaining
+            
+        return min(monthly_remaining, daily_remaining)
     
     def increment_runs(self):
         """Increment research run counters"""

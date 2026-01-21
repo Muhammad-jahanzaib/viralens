@@ -951,7 +951,7 @@ def api_run_research():
     if not current_user.can_run_research():
         return jsonify({
             'success': False,
-            'error': 'Research limit reached for your subscription tier.'
+            'error': 'Research limit reached (Max 10 per day).'
         }), 403
     
     try:
