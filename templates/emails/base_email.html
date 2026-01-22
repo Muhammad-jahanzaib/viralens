@@ -2,8 +2,9 @@
 <html>
 
 <head>
-    {% set base_url = config.get('PREFERRED_URL_SCHEME', 'http') + '://' + config.get('SERVER_NAME', 'localhost:5001')
-    %}
+    {% set scheme = config.get('PREFERRED_URL_SCHEME') or 'http' %}
+    {% set host = config.get('SERVER_NAME') or 'localhost:5001' %}
+    {% set base_url = scheme ~ '://' ~ host %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>

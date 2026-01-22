@@ -57,6 +57,7 @@ app.register_blueprint(admin_bp)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///viralens.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAIL_DEBUG'] = True # Enable debug for troubleshooting
 
 # Mail Configuration
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -213,6 +214,19 @@ def signup():
             "welcome",
             user_id=user.id,
             name=user.full_name or user.username,
+            status=user.approval_status
+        )
+
+        # Notify Admin of New Signup
+        admin_email = app.config.get('MAIL_DEFAULT_SENDER')
+        send_system_email(
+            admin_email,
+            f"New User Registered: {user.username} 👤",
+            "admin_new_user",
+            username=user.username,
+            email=user.email,
+            full_name=user.full_name,
+            niche=user.niche,
             status=user.approval_status
         )
         

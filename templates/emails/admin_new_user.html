@@ -1,0 +1,53 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<style>
+    .user-info {
+        background: #f8fafc;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 15px 0;
+        border-left: 4px solid #6366f1;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-approved {
+        background: #dcfce7;
+        color: #166534;
+    }
+</style>
+
+<p>Hello Admin,</p>
+<p>A new user has just registered on ViralLens. Here are the details:</p>
+
+<div class="user-info">
+    <p><strong>Username:</strong> {{ username }}</p>
+    <p><strong>Email:</strong> {{ email }}</p>
+    <p><strong>Full Name:</strong> {{ full_name or 'Not provided' }}</p>
+    <p><strong>Niche:</strong> {{ niche }}</p>
+    <p><strong>Status:</strong>
+        <span class="badge badge-{{ status }}">
+            {{ status }}
+        </span>
+    </p>
+</div>
+
+<p>You can manage this user and their approval status in the Admin Panel.</p>
+
+<a href="{{ base_url }}/admin/users" class="button">Go to User Management</a>
+
+<p>Best regards,<br>ViralLens System</p>
+{% endblock %}

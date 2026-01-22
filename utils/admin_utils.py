@@ -207,11 +207,17 @@ def send_system_email(recipient_email, subject, template, user_id=None, **kwargs
         # Render HTML content
         html_content = render_template(f"emails/{template}.html", **kwargs)
         
+        # Get sender from config
+        sender = current_app.config.get('MAIL_DEFAULT_SENDER')
+        if not sender:
+             print("⚠️ Warning: MAIL_DEFAULT_SENDER not configured. Email might fail.")
+
         # Create message
         msg = Message(
             subject=subject,
             recipients=[recipient_email],
-            html=html_content
+            html=html_content,
+            sender=sender
         )
         
         # Debug logging
