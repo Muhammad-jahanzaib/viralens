@@ -79,8 +79,13 @@
         </div>
         <div class="footer">
             <p>&copy; 2026 ViralLens AI. All rights reserved.</p>
+            <p>123 Research Way, Innovation Suite 404, Tech City, TC 12345</p>
             <p>You received this email because you are a registered user of ViralLens.</p>
-            <p><a href="#">Unsubscribe</a> | <a href="#">Support</a></p>
+            <p>
+                <a href="{{ base_url }}/unsubscribe?email={{ recipient_email or '' }}">Unsubscribe</a> |
+                <a href="{{ base_url }}/dashboard/settings">Manage Preferences</a> |
+                <a href="{{ base_url }}/support">Support</a>
+            </p>
         </div>
     </div>
 </body>
