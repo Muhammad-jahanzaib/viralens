@@ -456,7 +456,7 @@
 
         // Maintenance cleanup handler
         window.cleanupTestUsers = async function () {
-            if (confirm("⚠️ MAINTENANCE: Permanently delete ALL users with 'user' in their username?\n\nThis will clear all automatically generated test accounts.\nThis action cannot be undone!")) {
+            if (confirm("⚠️ MAINTENANCE: Permanently delete ALL users with 'user' or 'tester' in their username?\n\nThis will clear all automatically generated test accounts.\nThis action cannot be undone!")) {
                 try {
                     const response = await fetch('/admin/api/maintenance/delete-pattern-users', {
                         method: 'POST',

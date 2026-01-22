@@ -935,11 +935,13 @@ def bulk_delete_runs():
 @login_required
 @admin_required
 def delete_pattern_users():
-    """Maintenance: Delete all users with 'user' in username"""
+    """Maintenance: Delete all users with 'user' or 'tester' in username"""
     try:
-        pattern = '%user%'
-        # Find matches
-        target_users = User.query.filter(User.username.ilike(pattern)).all()
+        # Find matches for 'user' and 'tester'
+        target_users = User.query.filter(
+            (User.username.ilike('%user%')) | 
+            (User.username.ilike('%tester%'))
+        ).all()
         
         # Filter out the main admin if it happens to match (safety)
         targets = [u for u in target_users if not (u.is_admin and u.username == 'admin')]
@@ -954,13 +956,13 @@ def delete_pattern_users():
             action='maintenance_cleanup',
             target_type='users',
             target_id=None,
-            description=f'Permanently deleted {count} test users (pattern: %user%)'
+            description=f'Permanently deleted {count} test users (patterns: %user%, %tester%)'
         )
         
         return jsonify({
             'success': True,
             'count': count,
-            'message': f'Successfully deleted {count} test users.'
+            'message': f'Successfully deleted {count} test/tester users.'
         })
         
     except Exception as e:
