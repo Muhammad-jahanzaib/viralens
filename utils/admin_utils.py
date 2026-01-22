@@ -190,20 +190,59 @@ def export_research_runs_csv():
 from datetime import timedelta
 
 
+import threading
+
+def _send_async_email(app, msg, recipient_email, user_id, subject, template):
+    """Background task to send email and log result"""
+    with app.app_context():
+        try:
+            from models import EmailLog
+            mail = app.extensions.get('mail')
+            if not mail:
+                print("Error: Mail extension not found in thread context.")
+                return
+
+            mail.send(msg)
+            
+            # Log success
+            log = EmailLog(
+                recipient_email=recipient_email,
+                user_id=user_id,
+                subject=subject,
+                template=template,
+                status='sent'
+            )
+            db.session.add(log)
+            db.session.commit()
+            print(f"✅ [Async] Email sent to {recipient_email}")
+            
+        except Exception as e:
+            print(f"❌ [Async] Error sending email to {recipient_email}: {e}")
+            try:
+                from models import EmailLog
+                log = EmailLog(
+                    recipient_email=recipient_email,
+                    user_id=user_id,
+                    subject=subject,
+                    template=template,
+                    status='failed',
+                    error_message=str(e)
+                )
+                db.session.add(log)
+                db.session.commit()
+            except:
+                db.session.rollback()
+
 def send_system_email(recipient_email, subject, template, user_id=None, **kwargs):
     """
-    Send a system email and log it to the database
+    Send a system email asynchronously and log it to the database
     """
-    from models import EmailLog
-    
     try:
         # Check if mail extension is initialized
         if 'mail' not in current_app.extensions:
             print("Error: Flask-Mail not initialized.")
             return False
 
-        mail = current_app.extensions['mail']
-        
         # Render HTML content
         html_content = render_template(f"emails/{template}.html", **kwargs)
         
@@ -220,42 +259,17 @@ def send_system_email(recipient_email, subject, template, user_id=None, **kwargs
             sender=sender
         )
         
-        # Debug logging
-        sender = current_app.config.get('MAIL_DEFAULT_SENDER')
-        print(f"Sending email to {recipient_email}. Subject: {subject}. Sender: {sender}")
-        
-        # Send email
-        mail.send(msg)
-        
-        # Log success
-        log = EmailLog(
-            recipient_email=recipient_email,
-            user_id=user_id,
-            subject=subject,
-            template=template,
-            status='sent'
+        # Create and start background thread
+        app = current_app._get_current_object()
+        thread = threading.Thread(
+            target=_send_async_email, 
+            args=(app, msg, recipient_email, user_id, subject, template)
         )
-        db.session.add(log)
-        db.session.commit()
+        thread.start()
         
+        # Return True immediately since it's queued
         return True
         
     except Exception as e:
-        print(f"Error sending email to {recipient_email}: {e}")
-        
-        # Log failure
-        try:
-            log = EmailLog(
-                recipient_email=recipient_email,
-                user_id=user_id,
-                subject=subject,
-                template=template,
-                status='failed',
-                error_message=str(e)
-            )
-            db.session.add(log)
-            db.session.commit()
-        except:
-            db.session.rollback()
-            
+        print(f"Error queueing email to {recipient_email}: {e}")
         return False
