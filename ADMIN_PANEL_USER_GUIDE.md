@@ -21,8 +21,15 @@ To access the admin panel:
 3. If you are not logged in, you will be prompted to enter your admin credentials.
 4. Once authenticated, you will see the **Admin Dashboard** with high-level statistics.
 
-> [!IMPORTANT]
-> Access to the Admin Panel requires an account with administrative privileges. If you lose access, contact your system administrator.
+### Resetting Admin Password
+If you lose your admin password or need to update it, use the provided utility script. From the project root, run:
+
+```bash
+python3 scripts/update_admin.py YourNewPassword123!
+```
+
+> [!NOTE]
+> The password must be at least 8 characters long and include one uppercase letter and one number.
 
 ---
 

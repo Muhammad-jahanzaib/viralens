@@ -18,6 +18,7 @@ All requested tasks have been completed, verified locally, and pushed to the rem
 
 ### 4. Database & User Management
 - **Production Cleanup Tool**: Added a "Cleanup Test Accounts" button in the Admin Panel to easily remove test users in the production environment.
+- **Admin Password Reset**: Provided a secure utility script (`scripts/update_admin.py`) to reset or update the admin password directly from the CLI.
 - **Hard Delete**: Ensured that user deletion permanently removes all associated data.
 - **CLI Cleanup Script**: Provided a dedicated script for more complex database maintenance.
 
