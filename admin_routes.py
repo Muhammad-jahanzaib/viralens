@@ -326,29 +326,35 @@ def delete_user(user_id):
         flash('Cannot delete the last admin user.', 'error')
         return redirect(url_for('admin.user_detail', user_id=user_id))
     
-    # Soft delete
-    user.is_active = False
-    user.email = f"deleted_{user.id}_{user.email}"
-    user.username = f"deleted_{user.id}_{user.username}"
-    db.session.commit()
+    # Hard delete
+    try:
+        # Store email/name for email notification if needed before deletion
+        user_email = user.email
+        user_name = user.full_name or user.username
+        
+        # Log before deletion
+        log_admin_action(
+            action='delete_user',
+            target_type='user',
+            target_id=user_id,
+            description=f'Permanently deleted user {user.username}'
+        )
+        
+        db.session.delete(user)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting user: {str(e)}', 'error')
+        return redirect(url_for('admin.user_detail', user_id=user_id))
     
-    send_system_email(
-        user.email,
-        "Account Deletion Confirmation - ViralLens",
-        "deletion",
-        user_id=user.id,
-        name=user.full_name or user.username
-    )
+    # Optional: Send email (might not be needed for hard delete, or send to stored address)
+    # send_system_email(...) 
     
-    log_admin_action(
-        action='user_deleted',
-        target_type='User',
-        target_id=user_id,
-        description=f'Deleted user {user.username}'
-    )
-    
-    flash(f'User {user.username} has been deleted.', 'success')
+    flash(f'User {user_name} has been permanently deleted.', 'success')
     return redirect(url_for('admin.users'))
+
+    
+
 
 
 @admin_bp.route('/research-runs')
@@ -814,9 +820,7 @@ def bulk_delete_users():
         for user_id in user_ids:
             user = User.query.get(user_id)
             if user:
-                user.is_active = False
-                user.email = f"deleted_{user.id}_{user.email}"
-                user.username = f"deleted_{user.id}_{user.username}"
+                db.session.delete(user)
                 deleted_count += 1
         
         db.session.commit()
