@@ -199,7 +199,11 @@
 <div class="section-card">
     <div class="table-header">
         <h2>All Users ({{ pagination.total }} total)</h2>
-        <a href="{{ url_for('admin.export_users') }}" class="btn-action">📥 Export CSV</a>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="cleanupTestUsers()" class="btn-action" style="background: #64748b;">🧹 Cleanup Test
+                Accounts</button>
+            <a href="{{ url_for('admin.export_users') }}" class="btn-action">📥 Export CSV</a>
+        </div>
     </div>
 
     <div class="table-responsive">
@@ -417,7 +421,7 @@
                 performBulkAction('/admin/api/users/bulk-activate', 'activate');
             }
         }
-        
+
         window.bulkDelete = function () {
             if (confirm(`⚠️ PERMANENTLY DELETE ${getSelectedIds().length} users?\nThis cannot be undone!`)) {
                 performBulkAction('/admin/api/users/bulk-delete', 'delete');
@@ -427,27 +431,51 @@
         window.bulkExport = function () {
             const ids = getSelectedIds();
             if (ids.length === 0) return;
-            
+
             // Create a hidden form to submit for download
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '/admin/api/users/bulk-export';
-            
+
             const csrfInput = document.createElement('input');
             csrfInput.type = 'hidden';
             csrfInput.name = 'csrf_token';
             csrfInput.value = csrfToken;
             form.appendChild(csrfInput);
-            
+
             const idsInput = document.createElement('input');
             idsInput.type = 'hidden';
             idsInput.name = 'user_ids';
             idsInput.value = JSON.stringify(ids);
             form.appendChild(idsInput);
-            
+
             document.body.appendChild(form);
             form.submit();
             document.body.removeChild(form);
+        }
+
+        // Maintenance cleanup handler
+        window.cleanupTestUsers = async function () {
+            if (confirm("⚠️ MAINTENANCE: Permanently delete ALL users with 'user' in their username?\n\nThis will clear all automatically generated test accounts.\nThis action cannot be undone!")) {
+                try {
+                    const response = await fetch('/admin/api/maintenance/delete-pattern-users', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        alert(`✅ Success: ${data.message}`);
+                        window.location.reload();
+                    } else {
+                        alert(`❌ Failed: ${data.message}`);
+                    }
+                } catch (error) {
+                    alert("❌ Network error occurred.");
+                }
+            }
         }
     });
 </script>

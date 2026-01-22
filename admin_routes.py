@@ -931,3 +931,38 @@ def bulk_delete_runs():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
+@admin_bp.route('/api/maintenance/delete-pattern-users', methods=['POST'])
+@login_required
+@admin_required
+def delete_pattern_users():
+    """Maintenance: Delete all users with 'user' in username"""
+    try:
+        pattern = '%user%'
+        # Find matches
+        target_users = User.query.filter(User.username.ilike(pattern)).all()
+        
+        # Filter out the main admin if it happens to match (safety)
+        targets = [u for u in target_users if not (u.is_admin and u.username == 'admin')]
+        
+        count = len(targets)
+        for u in targets:
+            db.session.delete(u)
+            
+        db.session.commit()
+        
+        log_admin_action(
+            action='maintenance_cleanup',
+            target_type='users',
+            target_id=None,
+            description=f'Permanently deleted {count} test users (pattern: %user%)'
+        )
+        
+        return jsonify({
+            'success': True,
+            'count': count,
+            'message': f'Successfully deleted {count} test users.'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
