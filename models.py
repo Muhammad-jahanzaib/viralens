@@ -224,7 +224,7 @@ class UserConfig(db.Model):
     enable_newsapi = db.Column(db.Boolean, default=False)
     
     # Reddit config
-    default_subreddit = db.Column(db.String(100), default='cars')
+    default_subreddit = db.Column(db.String(100), default='')
     auto_detect_subreddit = db.Column(db.Boolean, default=True)
     
     # Performance tuning

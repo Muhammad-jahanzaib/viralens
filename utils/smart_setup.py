@@ -303,10 +303,8 @@ Output pure JSON only."""
                     channel_id = resolve_channel_id(url, YOUTUBE_API_KEY)
                     
                     if not channel_id:
-                        # Fallback for old regex if API fails/missing? 
-                        # Actually resolve_channel_id handles regex too.
-                        # If still None, we can log warning but proceed (will show as error in UI but saved)
-                        logger.warning(f"Could not resolve Channel ID for {comp['name']} ({url})")
+                        logger.warning(f"Could not resolve Channel ID for {comp['name']} ({url}). Skipping.")
+                        continue
                         
                     new_comp = Competitor(
                         user_id=user_id,

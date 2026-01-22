@@ -8,11 +8,8 @@
     },
     "reddit_config": {
         "auto_detect_subreddit": true,
-        "default_subreddit": "cars",
-        "fallback_subreddits": [
-            "Autos",
-            "whatcarshouldIbuy"
-        ]
+        "default_subreddit": "",
+        "fallback_subreddits": []
     },
     "performance_tuning": {
         "parallel_collection_timeout": 90,
@@ -20,14 +17,10 @@
         "retry_on_rate_limit": false
     },
     "niche_config": {
-        "name": "",
-        "description": "Car reviews, industry news, enthusiast content",
-        "primary_subreddit": "cars",
-        "suggested_competitors": [
-            "Doug DeMuro",
-            "TheStraightPipes",
-            "Throttle House"
-        ]
+        "name": "General",
+        "description": "General research and analysis",
+        "primary_subreddit": "",
+        "suggested_competitors": []
     },
     "niche_presets": {
         "automotive": {

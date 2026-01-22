@@ -31,8 +31,8 @@ class SystemConfig:
                 },
                 "reddit_config": {
                     "auto_detect_subreddit": False,
-                    "default_subreddit": "cars",
-                    "fallback_subreddits": ["Autos", "whatcarshouldIbuy"]
+                    "default_subreddit": "",
+                    "fallback_subreddits": []
                 },
                 "performance_tuning": {
                     "parallel_collection_timeout": 90,
@@ -40,9 +40,9 @@ class SystemConfig:
                     "retry_on_rate_limit": False
                 },
                 "niche_config": {
-                    "name": "Automotive",
-                    "description": "Car reviews, industry news",
-                    "primary_subreddit": "cars"
+                    "name": "General",
+                    "description": "General research",
+                    "primary_subreddit": ""
                 }
             }
             self._save_config(default_config)

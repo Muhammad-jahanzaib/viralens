@@ -353,7 +353,7 @@ def dashboard():
     """Main dashboard"""
     recent_runs = ResearchRun.query.filter_by(user_id=current_user.id)\
         .order_by(ResearchRun.created_at.desc())\
-        .limit(10)\
+        .limit(50)\
         .all()
     
     return render_template('dashboard.html', 

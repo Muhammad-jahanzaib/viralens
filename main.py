@@ -209,9 +209,21 @@ def run_research(user_id=None) -> Dict:
         reddit_conf = SYSTEM_CONFIG.get("reddit_config", {})
         min_upvotes = SYSTEM_CONFIG.get("collection_settings.reddit_min_upvotes", config.REDDIT_MIN_UPVOTES)
         
-        target_subreddit = reddit_conf.get("default_subreddit", config.REDDIT_SUBREDDIT)
+        # Priority 1: User Config
+        target_subreddit = ""
+        if user_id:
+             user = User.query.get(user_id)
+             if user and user.user_config:
+                  target_subreddit = user.user_config.default_subreddit
         
-        # Smart Auto-Detection Override
+        # Priority 2: System Config / Global Default
+        if not target_subreddit:
+            target_subreddit = reddit_conf.get("default_subreddit", "")
+            
+        if not target_subreddit:
+            target_subreddit = config.REDDIT_SUBREDDIT # Fallback to config.py default (SaintMeghanMarkle)
+
+        # Smart Auto-Detection Override (Optional)
         if reddit_conf.get("auto_detect_subreddit", False) and active_keywords:
             primary_kw = active_keywords[0]
             clean_kw = "".join(c for c in primary_kw if c.isalnum())
@@ -222,7 +234,7 @@ def run_research(user_id=None) -> Dict:
         reddit = RedditScraper(
             subreddit=target_subreddit,
             min_upvotes=min_upvotes,
-            default_subreddit=reddit_conf.get("default_subreddit", config.REDDIT_SUBREDDIT)
+            default_subreddit=config.REDDIT_SUBREDDIT
         )
 
         youtube = YouTubeCompetitorTracker(
@@ -275,7 +287,8 @@ def run_research(user_id=None) -> Dict:
         try:
             return REDDIT_BREAKER.call(
                 reddit.collect,
-                hours_back=config.TIME_WINDOW_HOURS
+                hours_back=config.TIME_WINDOW_HOURS,
+                keywords=active_keywords
             )
         except CircuitBreakerError as e:
             logger.warning(f"⚠️  Reddit circuit open: {e}")

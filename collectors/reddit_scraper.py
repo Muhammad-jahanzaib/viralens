@@ -55,7 +55,7 @@ class RedditScraper:
             max_posts: Maximum posts to collect (default: 20)
             default_subreddit: Fallback subreddit if target doesn't exist
         """
-        self.subreddit = subreddit
+        self.subreddit = subreddit.strip() if subreddit else ""
         self.min_upvotes = min_upvotes
         self.max_posts = max_posts
         self.default_subreddit = default_subreddit
@@ -218,7 +218,11 @@ class RedditScraper:
         target = f"r/{self.subreddit}"
         
         # Determine if we should search instead of scrape subreddit
-        if (not self.subreddit or self.subreddit == "SaintMeghanMarkle") and keywords:
+        # If subreddit is empty or known generic defaults, use search
+        # We don't want to use "SaintMeghanMarkle" as a target for search unless it's explicitly desired
+        generic_defaults = ["", "cars", "SaintMeghanMarkle"]
+        
+        if (not self.subreddit or self.subreddit in generic_defaults) and keywords:
              # If default/empty subreddit but we have keywords, use search
              is_search = True
              query = " OR ".join([f'"{k}"' for k in keywords[:3]]) # Limit to 3 keywords to avoid too long query
@@ -227,10 +231,18 @@ class RedditScraper:
         else:
             # Validate subreddit existence
             if not self._validate_subreddit(self.subreddit):
-                logger.warning(f"⚠️  Subreddit r/{self.subreddit} invalid/404. Falling back to default: r/{self.default_subreddit}")
-                self.subreddit = self.default_subreddit
-            
-            logger.info(f"🔴 Scraping Reddit: r/{self.subreddit} (past {hours_back}h)")
+                if keywords:
+                    logger.warning(f"⚠️  Subreddit r/{self.subreddit} invalid/404. Switching to keyword search.")
+                    is_search = True
+                    query = " OR ".join([f'"{k}"' for k in keywords[:3]])
+                    target = f"Search: {query}"
+                    logger.info(f"🔴 Searching Reddit: {query} (past {hours_back}h)")
+                else:
+                    logger.warning(f"⚠️  Subreddit r/{self.subreddit} invalid/404. Falling back to default: r/{self.default_subreddit}")
+                    self.subreddit = self.default_subreddit
+                    logger.info(f"🔴 Scraping Reddit: r/{self.subreddit} (past {hours_back}h)")
+            else:
+                logger.info(f"🔴 Scraping Reddit: r/{self.subreddit} (past {hours_back}h)")
 
         results = {
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
